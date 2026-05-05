@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 
 import '../config/flutter_factory_config.dart';
 import '../generator/mason_service.dart';
@@ -66,6 +69,7 @@ class AddFeatureCommand extends Command<int> {
     }
 
     validateDartIdentifier(featureName, label: 'name');
+    ensureFeatureDoesNotExist(featureName);
 
     final config = FlutterFactoryConfig.load();
     final stateManagement =
@@ -120,6 +124,7 @@ class AddApiCommand extends Command<int> {
     }
 
     validateDartIdentifier(apiName, label: 'name');
+    ensureFeatureDoesNotExist(apiName);
 
     final endpoint = argResults?['endpoint'] as String?;
 
@@ -136,6 +141,22 @@ class AddApiCommand extends Command<int> {
     _logger.success('API "$apiName" generated.');
     return ExitCode.success.code;
   }
+}
+
+void ensureFeatureDoesNotExist(String featureName) {
+  final featureDirectory = Directory(
+    p.join(Directory.current.path, 'lib', 'features', featureName),
+  );
+
+  if (!featureDirectory.existsSync()) {
+    return;
+  }
+
+  throw UsageException(
+    'Feature "$featureName" already exists at ${featureDirectory.path}. '
+        'Choose another name or remove the existing feature first.',
+    '',
+  );
 }
 
 class AddPageCommand extends Command<int> {
