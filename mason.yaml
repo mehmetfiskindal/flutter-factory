@@ -1,0 +1,13 @@
+bricks:
+  starter:
+    path: starter
+  feature:
+    path: bricks/feature
+  page:
+    path: bricks/page
+  api_service:
+    path: bricks/api_service
+  usecase:
+    path: bricks/usecase
+  widget:
+    path: bricks/widget

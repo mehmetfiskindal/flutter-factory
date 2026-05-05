@@ -1,0 +1,13 @@
+name: widget
+description: Generates a reusable Flutter widget with project conventions.
+version: 0.1.0
+
+vars:
+  name:
+    type: string
+    description: Widget name.
+    prompt: What is the widget name?
+  feature:
+    type: string
+    description: Optional target feature name.
+    prompt: Which feature should contain this widget?

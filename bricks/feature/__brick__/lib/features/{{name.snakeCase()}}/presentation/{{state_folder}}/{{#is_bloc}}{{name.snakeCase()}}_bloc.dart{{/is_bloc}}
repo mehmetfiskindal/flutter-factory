@@ -1,0 +1,61 @@
+import 'package:bloc/bloc.dart';
+
+import '../../domain/entities/{{name.snakeCase()}}.dart';
+import '../../domain/usecases/get_{{name.snakeCase()}}.dart';
+
+sealed class {{name.pascalCase()}}Event {
+  const {{name.pascalCase()}}Event();
+}
+
+final class {{name.pascalCase()}}Requested extends {{name.pascalCase()}}Event {
+  const {{name.pascalCase()}}Requested();
+}
+
+sealed class {{name.pascalCase()}}State {
+  const {{name.pascalCase()}}State();
+}
+
+final class {{name.pascalCase()}}Initial extends {{name.pascalCase()}}State {
+  const {{name.pascalCase()}}Initial();
+}
+
+final class {{name.pascalCase()}}Loading extends {{name.pascalCase()}}State {
+  const {{name.pascalCase()}}Loading();
+}
+
+final class {{name.pascalCase()}}Loaded extends {{name.pascalCase()}}State {
+  const {{name.pascalCase()}}Loaded(this.entity);
+
+  final {{name.pascalCase()}}Entity entity;
+}
+
+final class {{name.pascalCase()}}Failure extends {{name.pascalCase()}}State {
+  const {{name.pascalCase()}}Failure(this.message);
+
+  final String message;
+}
+
+final class {{name.pascalCase()}}Bloc extends Bloc<{{name.pascalCase()}}Event, {{name.pascalCase()}}State> {
+  {{name.pascalCase()}}Bloc({
+    required Get{{name.pascalCase()}}UseCase get{{name.pascalCase()}}UseCase,
+  })  : _get{{name.pascalCase()}}UseCase = get{{name.pascalCase()}}UseCase,
+        super(const {{name.pascalCase()}}Initial()) {
+    on<{{name.pascalCase()}}Requested>(_onRequested);
+  }
+
+  final Get{{name.pascalCase()}}UseCase _get{{name.pascalCase()}}UseCase;
+
+  Future<void> _onRequested(
+    {{name.pascalCase()}}Requested event,
+    Emitter<{{name.pascalCase()}}State> emit,
+  ) async {
+    emit(const {{name.pascalCase()}}Loading());
+
+    try {
+      final entity = await _get{{name.pascalCase()}}UseCase();
+      emit({{name.pascalCase()}}Loaded(entity));
+    } on Exception catch (error) {
+      emit({{name.pascalCase()}}Failure(error.toString()));
+    }
+  }
+}

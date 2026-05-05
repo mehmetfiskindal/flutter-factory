@@ -1,0 +1,12 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+bricks/*/hooks/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store

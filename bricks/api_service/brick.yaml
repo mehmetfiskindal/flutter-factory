@@ -1,0 +1,14 @@
+name: api_service
+description: Generates Dio service, Freezed model, repository, use cases, and Riverpod providers.
+version: 0.1.0
+
+vars:
+  name:
+    type: string
+    description: API resource or feature name.
+    prompt: What is the API service name?
+  endpoint:
+    type: string
+    description: Optional REST endpoint. Defaults to /<name-param-case>.
+    default: ""
+    prompt: What is the REST endpoint?

@@ -1,0 +1,9 @@
+name: api_service_hooks
+description: Hook helpers for the flutter-factory api_service brick.
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  mason: ^0.1.0

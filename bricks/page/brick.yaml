@@ -1,0 +1,13 @@
+name: page
+description: Generates a route-ready Flutter page inside a feature presentation layer.
+version: 0.1.0
+
+vars:
+  name:
+    type: string
+    description: Page name.
+    prompt: What is the page name?
+  feature:
+    type: string
+    description: Target feature name.
+    prompt: Which feature should contain this page?

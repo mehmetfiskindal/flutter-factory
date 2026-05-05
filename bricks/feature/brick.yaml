@@ -1,0 +1,17 @@
+name: feature
+description: Generates a feature-first Clean Architecture module with data, domain, and presentation layers.
+version: 0.1.0
+
+vars:
+  name:
+    type: string
+    description: Feature name.
+    prompt: What is the feature name?
+  state_management:
+    type: enum
+    description: State management solution used by the feature presentation layer.
+    default: riverpod
+    values:
+      - riverpod
+      - bloc
+    prompt: Which state management solution should this feature use?

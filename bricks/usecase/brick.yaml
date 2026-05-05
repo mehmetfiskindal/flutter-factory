@@ -1,0 +1,13 @@
+name: usecase
+description: Generates a domain use case for a feature.
+version: 0.1.0
+
+vars:
+  name:
+    type: string
+    description: Use case name.
+    prompt: What is the use case name?
+  feature:
+    type: string
+    description: Target feature name.
+    prompt: Which feature should contain this use case?

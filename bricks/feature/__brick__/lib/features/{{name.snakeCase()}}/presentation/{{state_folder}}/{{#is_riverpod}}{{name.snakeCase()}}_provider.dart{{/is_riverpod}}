@@ -1,0 +1,44 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/datasources/{{name.snakeCase()}}_remote_datasource.dart';
+import '../../data/repositories/{{name.snakeCase()}}_repository_impl.dart';
+import '../../domain/entities/{{name.snakeCase()}}.dart';
+import '../../domain/repositories/{{name.snakeCase()}}_repository.dart';
+import '../../domain/usecases/get_{{name.snakeCase()}}.dart';
+
+final {{name.camelCase()}}RemoteDataSourceProvider =
+    Provider<{{name.pascalCase()}}RemoteDataSource>((ref) {
+  return {{name.pascalCase()}}RemoteDataSourceImpl();
+});
+
+final {{name.camelCase()}}RepositoryProvider =
+    Provider<{{name.pascalCase()}}Repository>((ref) {
+  return {{name.pascalCase()}}RepositoryImpl(
+    remoteDataSource: ref.watch({{name.camelCase()}}RemoteDataSourceProvider),
+  );
+});
+
+final get{{name.pascalCase()}}UseCaseProvider = Provider<Get{{name.pascalCase()}}UseCase>((ref) {
+  return Get{{name.pascalCase()}}UseCase(
+    repository: ref.watch({{name.camelCase()}}RepositoryProvider),
+  );
+});
+
+final {{name.camelCase()}}ControllerProvider =
+    AsyncNotifierProvider<{{name.pascalCase()}}Controller, {{name.pascalCase()}}Entity>(
+  {{name.pascalCase()}}Controller.new,
+);
+
+final class {{name.pascalCase()}}Controller extends AsyncNotifier<{{name.pascalCase()}}Entity> {
+  @override
+  Future<{{name.pascalCase()}}Entity> build() {
+    return ref.watch(get{{name.pascalCase()}}UseCaseProvider).call();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(get{{name.pascalCase()}}UseCaseProvider).call(),
+    );
+  }
+}

@@ -1,0 +1,11 @@
+export 'data/datasources/{{name.snakeCase()}}_remote_datasource.dart';
+export 'data/models/{{name.snakeCase()}}_model.dart';
+export 'data/repositories/{{name.snakeCase()}}_repository_impl.dart';
+export 'domain/entities/{{name.snakeCase()}}.dart';
+export 'domain/repositories/{{name.snakeCase()}}_repository.dart';
+export 'domain/usecases/get_{{name.snakeCase()}}.dart';
+{{#is_riverpod}}export 'providers.dart';
+export 'presentation/providers/{{name.snakeCase()}}_provider.dart';
+{{/is_riverpod}}{{#is_bloc}}export 'presentation/controllers/{{name.snakeCase()}}_bloc.dart';
+{{/is_bloc}}export 'presentation/views/{{name.snakeCase()}}_view.dart';
+export 'presentation/widgets/{{name.snakeCase()}}_empty_state.dart';
