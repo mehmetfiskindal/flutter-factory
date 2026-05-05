@@ -19,7 +19,7 @@ The CLI can be used without publishing anything to BrickHub.
 From the repository root:
 
 ```bash
-dart pub global activate --source path cli
+dart pub global activate -s path ./cli
 export FLUTTER_FACTORY_ROOT="$(pwd)"
 ```
 

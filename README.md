@@ -86,7 +86,7 @@ Clone this repository and activate the CLI from the local `cli/` package:
 ```bash
 git clone <your-repo-url> flutter-factory
 cd flutter-factory
-dart pub global activate --source path cli
+dart pub global activate -s path ./cli
 ```
 
 Point the CLI to the local flutter-factory repository so it can find `starter/` and `bricks/`:
