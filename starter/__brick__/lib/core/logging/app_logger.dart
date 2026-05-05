@@ -1,11 +1,18 @@
+{{#is_riverpod}}
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+{{/is_riverpod}}
 import 'package:logger/logger.dart';
 
 import '../../app/flavor.dart';
 
+{{#is_riverpod}}
 final appLoggerProvider = Provider<Logger>((ref) {
   final environment = ref.watch(appEnvironmentProvider);
 
+  return createAppLogger(environment);
+});
+{{/is_riverpod}}
+Logger createAppLogger(AppEnvironment environment) {
   return Logger(
     level: environment.isProduction ? Level.warning : Level.debug,
     printer: PrettyPrinter(
@@ -17,4 +24,4 @@ final appLoggerProvider = Provider<Logger>((ref) {
       dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
   );
-});
+}

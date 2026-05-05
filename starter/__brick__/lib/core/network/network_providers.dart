@@ -1,3 +1,4 @@
+{{#is_riverpod}}
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,3 +62,6 @@ final dioProvider = Provider<Dio>((ref) {
 final dioClientProvider = Provider<DioClient>((ref) {
   return DioClient(dio: ref.watch(dioProvider));
 });
+{{/is_riverpod}}{{#is_bloc}}export 'dio_client.dart';
+export 'token_storage.dart';
+{{/is_bloc}}

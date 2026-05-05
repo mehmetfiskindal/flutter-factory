@@ -1,0 +1,183 @@
+{{#is_riverpod}}import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/network_providers.dart';
+import '../../data/datasources/auth_remote_datasource.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/auth_user.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/get_current_user.dart';
+import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_out.dart';
+
+final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+  return AuthRemoteDataSourceImpl(ref.watch(dioProvider));
+});
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(
+    remoteDataSource: ref.watch(authRemoteDataSourceProvider),
+    tokenStorage: ref.watch(tokenStorageProvider),
+  );
+});
+
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+  return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
+});
+
+final signInUseCaseProvider = Provider<SignInUseCase>((ref) {
+  return SignInUseCase(ref.watch(authRepositoryProvider));
+});
+
+final signOutUseCaseProvider = Provider<SignOutUseCase>((ref) {
+  return SignOutUseCase(ref.watch(authRepositoryProvider));
+});
+
+final authControllerProvider =
+    AsyncNotifierProvider<AuthController, AuthUser?>(AuthController.new);
+
+class AuthController extends AsyncNotifier<AuthUser?> {
+  @override
+  Future<AuthUser?> build() {
+    return ref.watch(getCurrentUserUseCaseProvider).call();
+  }
+
+  Future<void> signIn({
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() {
+      return ref.read(signInUseCaseProvider).call(
+            email: email,
+            password: password,
+          );
+    });
+  }
+
+  Future<void> signOut() async {
+    state = const AsyncLoading();
+    await ref.read(signOutUseCaseProvider).call();
+    state = const AsyncData(null);
+  }
+}
+{{/is_riverpod}}{{#is_bloc}}import 'package:bloc/bloc.dart';
+
+import '../../domain/entities/auth_user.dart';
+import '../../domain/usecases/get_current_user.dart';
+import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_out.dart';
+
+sealed class AuthEvent {
+  const AuthEvent();
+}
+
+final class AuthStarted extends AuthEvent {
+  const AuthStarted();
+}
+
+final class SignInSubmitted extends AuthEvent {
+  const SignInSubmitted({
+    required this.email,
+    required this.password,
+  });
+
+  final String email;
+  final String password;
+}
+
+final class SignOutRequested extends AuthEvent {
+  const SignOutRequested();
+}
+
+sealed class AuthState {
+  const AuthState();
+}
+
+final class AuthInitial extends AuthState {
+  const AuthInitial();
+}
+
+final class AuthLoading extends AuthState {
+  const AuthLoading();
+}
+
+final class AuthAuthenticated extends AuthState {
+  const AuthAuthenticated(this.user);
+
+  final AuthUser user;
+}
+
+final class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated();
+}
+
+final class AuthFailure extends AuthState {
+  const AuthFailure(this.message);
+
+  final String message;
+}
+
+final class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  AuthBloc({
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+    required SignInUseCase signInUseCase,
+    required SignOutUseCase signOutUseCase,
+  })  : _getCurrentUserUseCase = getCurrentUserUseCase,
+        _signInUseCase = signInUseCase,
+        _signOutUseCase = signOutUseCase,
+        super(const AuthInitial()) {
+    on<AuthStarted>(_onStarted);
+    on<SignInSubmitted>(_onSignInSubmitted);
+    on<SignOutRequested>(_onSignOutRequested);
+  }
+
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final SignInUseCase _signInUseCase;
+  final SignOutUseCase _signOutUseCase;
+
+  Future<void> _onStarted(
+    AuthStarted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final user = await _getCurrentUserUseCase();
+      if (user == null) {
+        emit(const AuthUnauthenticated());
+        return;
+      }
+
+      emit(AuthAuthenticated(user));
+    } on Exception catch (error) {
+      emit(AuthFailure(error.toString()));
+    }
+  }
+
+  Future<void> _onSignInSubmitted(
+    SignInSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final user = await _signInUseCase(
+        email: event.email,
+        password: event.password,
+      );
+      emit(AuthAuthenticated(user));
+    } on Exception catch (error) {
+      emit(AuthFailure(error.toString()));
+    }
+  }
+
+  Future<void> _onSignOutRequested(
+    SignOutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    await _signOutUseCase();
+    emit(const AuthUnauthenticated());
+  }
+}
+{{/is_bloc}}

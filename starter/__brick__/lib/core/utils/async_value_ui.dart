@@ -1,3 +1,4 @@
+{{#is_riverpod}}
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,3 +15,4 @@ extension AsyncValueSnackBar on AsyncValue<Object?> {
     );
   }
 }
+{{/is_riverpod}}

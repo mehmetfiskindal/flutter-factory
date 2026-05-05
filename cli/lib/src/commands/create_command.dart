@@ -7,12 +7,19 @@ import '../config/flutter_factory_config.dart';
 import '../generator/mason_service.dart';
 import '../utils/name_validator.dart';
 
+typedef FlutterShellCreator = Future<void> Function({
+  required String appName,
+  required String organization,
+});
+
 class CreateCommand extends Command<int> {
   CreateCommand({
     required Logger logger,
     required MasonService masonService,
+    FlutterShellCreator? flutterShellCreator,
   })  : _logger = logger,
-        _masonService = masonService {
+        _masonService = masonService,
+        _flutterShellCreator = flutterShellCreator ?? createFlutterShell {
     argParser
       ..addOption(
         'state',
@@ -40,6 +47,7 @@ class CreateCommand extends Command<int> {
 
   final Logger _logger;
   final MasonService _masonService;
+  final FlutterShellCreator _flutterShellCreator;
 
   @override
   String get description => 'Create a new production-ready Flutter project.';
@@ -74,7 +82,10 @@ class CreateCommand extends Command<int> {
     final includeOffline = argResults?['offline'] as bool? ?? config.offline;
 
     _logger.info('Creating Flutter project "$appName"...');
-    await _createFlutterShell(appName: appName, organization: organization);
+    await _flutterShellCreator(
+      appName: appName,
+      organization: organization,
+    );
 
     await _masonService.generate(
       brickName: 'starter',
@@ -93,22 +104,22 @@ class CreateCommand extends Command<int> {
     _logger.success('Project "$appName" generated.');
     return ExitCode.success.code;
   }
+}
 
-  Future<void> _createFlutterShell({
-    required String appName,
-    required String organization,
-  }) async {
-    final result = await Process.run(
-      'flutter',
-      ['create', '--org', organization, appName],
-      runInShell: true,
+Future<void> createFlutterShell({
+  required String appName,
+  required String organization,
+}) async {
+  final result = await Process.run(
+    'flutter',
+    ['create', '--org', organization, appName],
+    runInShell: true,
+  );
+
+  if (result.exitCode != ExitCode.success.code) {
+    throw UsageException(
+      'flutter create failed:\n${result.stderr}',
+      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc] [--auth] [--offline]',
     );
-
-    if (result.exitCode != ExitCode.success.code) {
-      throw UsageException(
-        'flutter create failed:\n${result.stderr}',
-        usage,
-      );
-    }
   }
 }

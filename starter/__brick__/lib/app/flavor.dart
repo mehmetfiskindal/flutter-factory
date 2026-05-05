@@ -1,4 +1,6 @@
+{{#is_riverpod}}
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+{{/is_riverpod}}
 
 enum AppFlavor {
   dev,
@@ -74,6 +76,8 @@ class AppEnvironment {
   bool get isProduction => flavor == AppFlavor.prod;
 }
 
+{{#is_riverpod}}
 final appEnvironmentProvider = Provider<AppEnvironment>((ref) {
   throw UnimplementedError('AppEnvironment must be overridden in app/di.dart.');
 });
+{{/is_riverpod}}

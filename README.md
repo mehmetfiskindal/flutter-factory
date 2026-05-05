@@ -264,7 +264,7 @@ flutter-factory is not just a starter template. It is a repeatable app factory f
 - [x] Core bricks for feature, page, API service, widget, and use case generation.
 - [x] `flutter_factory doctor` environment checks.
 - [x] Riverpod-first project template.
-- [ ] Bloc-compatible project template.
+- [x] Bloc-compatible project template.
 - [x] Dio networking module with interceptors and typed error handling.
 - [x] GoRouter setup with generated route examples.
 - [x] Freezed and json_serializable model generation.
