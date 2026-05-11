@@ -6,6 +6,10 @@ abstract interface class TokenStorage {
 
   String? readRefreshToken();
 
+  String? readValue(String key);
+
+  Future<void> writeValue(String key, String value);
+
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -30,6 +34,16 @@ final class HiveTokenStorage implements TokenStorage {
   }
 
   @override
+  String? readValue(String key) {
+    return _cacheStore.readString(key);
+  }
+
+  @override
+  Future<void> writeValue(String key, String value) {
+    return _cacheStore.writeString(key, value);
+  }
+
+  @override
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -42,5 +56,6 @@ final class HiveTokenStorage implements TokenStorage {
   Future<void> clearTokens() async {
     await _cacheStore.remove(CacheKeys.accessToken);
     await _cacheStore.remove(CacheKeys.refreshToken);
+    await _cacheStore.remove(CacheKeys.user);
   }
 }

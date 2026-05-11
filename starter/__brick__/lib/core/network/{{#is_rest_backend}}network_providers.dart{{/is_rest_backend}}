@@ -3,12 +3,17 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/flavor.dart';
+{{#include_auth}}
 import '../../features/auth/data/datasources/auth_token_refresher.dart';
 import '../cache/cache_providers.dart';
-import '../logging/app_logger.dart';
+{{/include_auth}}{{#include_auth}}import '../logging/app_logger.dart';
+{{/include_auth}}
 import '../utils/constants/network_constants.dart';
+{{#include_auth}}
 import 'api_interceptor.dart';
+{{/include_auth}}
 import 'dio_client.dart';
+{{#include_auth}}
 import 'token_storage.dart';
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) {
@@ -21,6 +26,7 @@ final authTokenRefresherProvider = Provider<AuthTokenRefresher>((ref) {
     tokenStorage: ref.watch(tokenStorageProvider),
   );
 });
+{{/include_auth}}
 
 final rawDioProvider = Provider<Dio>((ref) {
   final environment = ref.watch(appEnvironmentProvider);
@@ -40,21 +46,23 @@ final rawDioProvider = Provider<Dio>((ref) {
 });
 
 final dioProvider = Provider<Dio>((ref) {
+  {{#include_auth}}
   final environment = ref.watch(appEnvironmentProvider);
-  final logger = ref.watch(appLoggerProvider);
+  {{/include_auth}}
   final dio = ref.watch(rawDioProvider);
 
-  dio.interceptors
-    ..clear()
-    ..add(
-      ApiInterceptor(
-        dio: dio,
-        tokenStorage: ref.watch(tokenStorageProvider),
-        tokenRefresher: ref.watch(authTokenRefresherProvider),
-        logger: logger,
-        enableLogging: environment.enableNetworkLogs,
-      ),
-    );
+  dio.interceptors.clear();
+  {{#include_auth}}final logger = ref.watch(appLoggerProvider);
+  dio.interceptors.add(
+    ApiInterceptor(
+      dio: dio,
+      tokenStorage: ref.watch(tokenStorageProvider),
+      tokenRefresher: ref.watch(authTokenRefresherProvider),
+      logger: logger,
+      enableLogging: environment.enableNetworkLogs,
+    ),
+  );
+  {{/include_auth}}
 
   return dio;
 });
@@ -63,5 +71,7 @@ final dioClientProvider = Provider<DioClient>((ref) {
   return DioClient(dio: ref.watch(dioProvider));
 });
 {{/is_riverpod}}{{#is_bloc}}export 'dio_client.dart';
+{{#include_auth}}
 export 'token_storage.dart';
+{{/include_auth}}
 {{/is_bloc}}

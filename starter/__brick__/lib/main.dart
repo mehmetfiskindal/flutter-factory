@@ -11,7 +11,8 @@ import 'app/di.dart';
 import 'app/flavor.dart';
 {{#is_firebase_backend}}import 'firebase_options.dart';
 {{/is_firebase_backend}}
-{{#is_bloc}}import 'features/auth/presentation/controllers/auth_bloc.dart';
+{{#is_bloc}}{{#include_auth}}import 'features/auth/presentation/controllers/auth_bloc.dart';
+{{/include_auth}}
 {{/is_bloc}}
 
 Future<void> main() async {
@@ -35,6 +36,7 @@ Future<void> main() async {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: dependencies.environment),
+        {{#include_auth}}
         RepositoryProvider.value(value: dependencies.authRepository),
         {{#is_firebase_backend}}
         RepositoryProvider.value(value: dependencies.createAccountUseCase),
@@ -57,8 +59,14 @@ Future<void> main() async {
         RepositoryProvider.value(value: dependencies.firestoreService),
         RepositoryProvider.value(value: dependencies.cloudStorageService),
         {{/is_firebase_backend}}
+        {{/include_auth}}{{#is_firebase_backend}}{{^include_auth}}
+        RepositoryProvider.value(value: dependencies.firestore),
+        RepositoryProvider.value(value: dependencies.storage),
+        RepositoryProvider.value(value: dependencies.firestoreService),
+        RepositoryProvider.value(value: dependencies.cloudStorageService),
+        {{/include_auth}}{{/is_firebase_backend}}
       ],
-      child: BlocProvider(
+      child: {{#include_auth}}BlocProvider(
         create: (context) => AuthBloc(
           {{#is_firebase_backend}}createAccountUseCase:
               dependencies.createAccountUseCase,
@@ -74,7 +82,7 @@ Future<void> main() async {
           {{/is_firebase_backend}}
         )..add(const AuthStarted()),
         child: const {{app_name.pascalCase()}}Application(),
-      ),
+      ){{/include_auth}}{{^include_auth}}const {{app_name.pascalCase()}}Application(){{/include_auth}},
     ),
     {{/is_bloc}}
   );

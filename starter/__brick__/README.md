@@ -10,7 +10,10 @@ Backend: `{{backend}}`
 
 {{#is_firebase_backend}}## Firebase Setup
 
-This project uses Firebase Core, Authentication, Cloud Firestore, and Cloud Storage.
+This project uses Firebase Core, {{#include_auth}}Authentication, {{/include_auth}}Cloud Firestore, and Cloud Storage.
+{{^include_auth}}
+Authentication scaffolding was not generated because `auth` was disabled.
+{{/include_auth}}
 
 Firebase must be configured before the first app run. The generated
 `lib/firebase_options.dart` is only a compiling placeholder and intentionally
@@ -32,7 +35,17 @@ flutterfire configure
 
 `flutterfire configure` replaces the placeholder `lib/firebase_options.dart`.
 
+Firestore includes native offline persistence on supported platforms. This
+starter does not add an extra Firebase sync queue in V1.
+
 {{/is_firebase_backend}}
+{{#include_offline}}## Offline Support
+
+REST offline support includes cache infrastructure and a connectivity service.
+Use `offlineStatusProvider` with Riverpod or `ConnectivityService` directly with
+Bloc to decide when repositories should fall back to cached data.
+
+{{/include_offline}}
 
 ## Run
 

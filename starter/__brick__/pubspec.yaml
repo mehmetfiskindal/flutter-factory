@@ -14,12 +14,15 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   {{#is_rest_backend}}
+  {{#include_offline}}connectivity_plus: ^6.1.5
+  {{/include_offline}}
   dio: ^5.9.0
   hive: ^2.2.3
   path_provider: ^2.1.5
   {{/is_rest_backend}}{{#is_firebase_backend}}
   cloud_firestore: ^6.3.0
-  firebase_auth: ^6.4.0
+  {{#uses_firebase_auth}}firebase_auth: ^6.4.0
+  {{/uses_firebase_auth}}
   firebase_core: ^4.7.0
   firebase_storage: ^13.3.0
   {{/is_firebase_backend}}

@@ -9,7 +9,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../core/theme/app_theme.dart';
 import 'flavor.dart';
 import 'router.dart';
-{{#is_bloc}}import '../features/auth/presentation/controllers/auth_bloc.dart';
+{{#is_bloc}}{{#include_auth}}import '../features/auth/presentation/controllers/auth_bloc.dart';
+{{/include_auth}}
 {{/is_bloc}}
 
 {{#is_riverpod}}
@@ -45,9 +46,11 @@ class {{app_name.pascalCase()}}Application extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    {{#include_auth}}
     final authBloc = context.read<AuthBloc>();
+    {{/include_auth}}
     final environment = context.read<AppEnvironment>();
-    final router = createAppRouter(authBloc);
+    final router = createAppRouter({{#include_auth}}authBloc{{/include_auth}});
 
     return MaterialApp.router(
       title: environment.appName,

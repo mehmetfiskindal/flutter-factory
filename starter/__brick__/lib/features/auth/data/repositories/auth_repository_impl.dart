@@ -1,7 +1,11 @@
-{{#is_rest_backend}}import '../../../../core/network/token_storage.dart';
+{{#is_rest_backend}}import 'dart:convert';
+
+import '../../../../core/network/token_storage.dart';
+import '../../../../core/utils/constants/cache_keys.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
+import '../models/auth_user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   const AuthRepositoryImpl({
@@ -20,11 +24,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return null;
     }
 
-    return const AuthUser(
-      id: 'cached-user',
-      email: 'cached@example.com',
-      displayName: 'Cached User',
-    );
+    return _tokenStorage.readUser();
   }
 
   @override
@@ -41,6 +41,7 @@ class AuthRepositoryImpl implements AuthRepository {
       accessToken: session.accessToken,
       refreshToken: session.refreshToken,
     );
+    await _tokenStorage.saveUser(session.user);
 
     return session.user;
   }
@@ -48,6 +49,22 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() {
     return _tokenStorage.clearTokens();
+  }
+}
+
+extension on TokenStorage {
+  AuthUser? readUser() {
+    final cachedUser = readValue(CacheKeys.user);
+    if (cachedUser == null || cachedUser.isEmpty) {
+      return null;
+    }
+
+    final json = jsonDecode(cachedUser) as Map<String, dynamic>;
+    return AuthUserModel.fromJson(json);
+  }
+
+  Future<void> saveUser(AuthUserModel user) {
+    return writeValue(CacheKeys.user, jsonEncode(user.toJson()));
   }
 }
 {{/is_rest_backend}}{{#is_firebase_backend}}import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;

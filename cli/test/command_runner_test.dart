@@ -5,8 +5,10 @@ import 'package:flutter_factory/flutter_factory.dart';
 import 'package:flutter_factory/src/commands/config_command.dart';
 import 'package:flutter_factory/src/commands/create_command.dart';
 import 'package:flutter_factory/src/commands/doctor_command.dart';
+import 'package:flutter_factory/src/config/flutter_factory_config.dart';
 import 'package:flutter_factory/src/generator/mason_service.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -113,6 +115,160 @@ void main() {
     expect(masonService.vars['org_name'], 'com.example');
     expect(masonService.vars['state_management'], 'bloc');
     expect(masonService.vars['backend'], 'firebase');
+  });
+
+  test('create passes auth and offline flags to the starter brick', () async {
+    final masonService = _RecordingMasonService();
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        CreateCommand(
+          logger: Logger(),
+          masonService: masonService,
+          flutterShellCreator: ({
+            required appName,
+            required organization,
+          }) async {},
+        ),
+      );
+
+    final exitCode = await runner.run([
+      'create',
+      'offline_auth_app',
+      '--org',
+      'com.example',
+      '--auth',
+      '--offline',
+    ]);
+
+    expect(exitCode, 0);
+    expect(masonService.vars['auth'], isTrue);
+    expect(masonService.vars['offline_support'], isTrue);
+  });
+
+  test('create CLI arguments override config defaults', () async {
+    const config = FlutterFactoryConfig(
+      stateManagement: 'bloc',
+      backend: 'firebase',
+      organization: 'com.config',
+      auth: true,
+      offline: true,
+    );
+    config.save();
+
+    final masonService = _RecordingMasonService();
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        CreateCommand(
+          logger: Logger(),
+          masonService: masonService,
+          flutterShellCreator: ({
+            required appName,
+            required organization,
+          }) async {},
+        ),
+      );
+
+    final exitCode = await runner.run([
+      'create',
+      'override_app',
+      '--org',
+      'com.cli',
+      '--state',
+      'riverpod',
+      '--backend',
+      'rest_firebase_hybrid',
+      '--no-auth',
+      '--no-offline',
+    ]);
+
+    expect(exitCode, 0);
+    expect(masonService.vars['org_name'], 'com.cli');
+    expect(masonService.vars['state_management'], 'riverpod');
+    expect(masonService.vars['backend'], 'rest_firebase_hybrid');
+    expect(masonService.vars['auth'], isFalse);
+    expect(masonService.vars['offline_support'], isFalse);
+  });
+
+  test('starter brick supports all state/backend/auth/offline combinations',
+      () async {
+    final repoRoot = previousDirectory.parent.path;
+    final masonService = MasonService(
+      logger: Logger(),
+      workingDirectory: Directory(repoRoot),
+    );
+
+    for (final stateManagement in ['riverpod', 'bloc']) {
+      for (final backend in ['rest_firebase_hybrid', 'firebase']) {
+        for (final includeAuth in [true, false]) {
+          for (final includeOffline in [true, false]) {
+            final outputDirectory = Directory(
+              p.join(
+                tempDirectory.path,
+                [
+                  stateManagement,
+                  backend,
+                  includeAuth ? 'auth' : 'no_auth',
+                  includeOffline ? 'offline' : 'online',
+                ].join('_'),
+              ),
+            );
+
+            await masonService.generate(
+              brickName: 'starter',
+              targetDirectory: outputDirectory.path,
+              force: true,
+              vars: {
+                'app_name': 'sample_app',
+                'org_name': 'com.example',
+                'state_management': stateManagement,
+                'backend': backend,
+                'auth': includeAuth,
+                'offline_support': includeOffline,
+              },
+            );
+
+            final files = _generatedFiles(outputDirectory);
+            final pubspec = File(p.join(outputDirectory.path, 'pubspec.yaml'))
+                .readAsStringSync();
+            final router =
+                File(p.join(outputDirectory.path, 'lib/app/router.dart'))
+                    .readAsStringSync();
+
+            expect(
+              files.any((file) => file.path.contains('{{')),
+              isFalse,
+              reason: 'Raw mustache marker found in generated file path.',
+            );
+            expect(
+              files.any((file) => file.readAsStringSync().contains('{{')),
+              isFalse,
+              reason: 'Raw mustache marker found in generated file content.',
+            );
+
+            expect(
+              Directory(p.join(outputDirectory.path, 'lib/features/auth'))
+                  .existsSync(),
+              includeAuth,
+            );
+            expect(router.contains('RoutePaths.signIn'), includeAuth);
+            expect(router.contains('SignInView'), includeAuth);
+
+            if (backend == 'firebase') {
+              expect(pubspec.contains('firebase_auth:'), includeAuth);
+            }
+
+            if (backend == 'rest_firebase_hybrid') {
+              expect(pubspec.contains('connectivity_plus:'), includeOffline);
+              expect(
+                Directory(p.join(outputDirectory.path, 'lib/core/offline'))
+                    .existsSync(),
+                includeOffline,
+              );
+            }
+          }
+        }
+      }
+    }
   });
 
   test('normalizes firebase backend config values', () {
@@ -246,4 +402,12 @@ class _RecordingMasonService extends MasonService {
     this.targetDirectory = targetDirectory;
     this.force = force;
   }
+}
+
+List<File> _generatedFiles(Directory directory) {
+  return directory
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((file) => !p.basename(file.path).endsWith('.lock'))
+      .toList();
 }

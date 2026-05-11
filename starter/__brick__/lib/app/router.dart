@@ -1,5 +1,6 @@
-{{#is_bloc}}import 'dart:async';
+{{#is_bloc}}{{#include_auth}}import 'dart:async';
 
+{{/include_auth}}
 {{/is_bloc}}
 import 'package:flutter/material.dart';
 {{#is_riverpod}}
@@ -9,11 +10,13 @@ import 'package:go_router/go_router.dart';
 
 import '../core/router/app_shell.dart';
 import '../core/router/route_paths.dart';
-{{#is_riverpod}}
+{{#is_riverpod}}{{#include_auth}}
 import '../features/auth/presentation/providers/auth_controller.dart';
-{{/is_riverpod}}{{#is_bloc}}import '../features/auth/presentation/controllers/auth_bloc.dart';
-{{/is_bloc}}
+{{/include_auth}}{{/is_riverpod}}{{#is_bloc}}{{#include_auth}}import '../features/auth/presentation/controllers/auth_bloc.dart';
+{{/include_auth}}{{/is_bloc}}
+{{#include_auth}}
 import '../features/auth/presentation/views/sign_in_view.dart';
+{{/include_auth}}
 import '../features/home/presentation/views/home_view.dart';
 import '../features/settings/presentation/views/settings_view.dart';
 
@@ -22,12 +25,15 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 {{#is_riverpod}}
 final appRouterProvider = Provider<GoRouter>((ref) {
+  {{#include_auth}}
   final refreshNotifier = GoRouterRefreshNotifier(ref);
   ref.onDispose(refreshNotifier.dispose);
 
+  {{/include_auth}}
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.home,
+    {{#include_auth}}
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final authState = ref.read(authControllerProvider);
@@ -49,13 +55,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       return null;
     },
+    {{/include_auth}}
     routes: [
+      {{#include_auth}}
       GoRoute(
         path: RoutePaths.signIn,
         name: RouteNames.signIn,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SignInView(),
       ),
+      {{/include_auth}}
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
@@ -78,6 +87,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
+{{#include_auth}}
 class GoRouterRefreshNotifier extends ChangeNotifier {
   GoRouterRefreshNotifier(this._ref) {
     _subscription = _ref.listen<AsyncValue<Object?>>(
@@ -95,13 +105,17 @@ class GoRouterRefreshNotifier extends ChangeNotifier {
     super.dispose();
   }
 }
+{{/include_auth}}
 {{/is_riverpod}}{{#is_bloc}}
-GoRouter createAppRouter(AuthBloc authBloc) {
+GoRouter createAppRouter({{#include_auth}}AuthBloc authBloc{{/include_auth}}) {
+  {{#include_auth}}
   final refreshNotifier = GoRouterBlocRefreshNotifier(authBloc);
 
+  {{/include_auth}}
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.home,
+    {{#include_auth}}
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final authState = authBloc.state;
@@ -123,13 +137,16 @@ GoRouter createAppRouter(AuthBloc authBloc) {
 
       return null;
     },
+    {{/include_auth}}
     routes: [
+      {{#include_auth}}
       GoRoute(
         path: RoutePaths.signIn,
         name: RouteNames.signIn,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SignInView(),
       ),
+      {{/include_auth}}
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
@@ -152,6 +169,7 @@ GoRouter createAppRouter(AuthBloc authBloc) {
   );
 }
 
+{{#include_auth}}
 class GoRouterBlocRefreshNotifier extends ChangeNotifier {
   GoRouterBlocRefreshNotifier(AuthBloc authBloc) {
     _subscription = authBloc.stream.listen((_) => notifyListeners());
@@ -165,4 +183,5 @@ class GoRouterBlocRefreshNotifier extends ChangeNotifier {
     super.dispose();
   }
 }
+{{/include_auth}}
 {{/is_bloc}}
