@@ -1,0 +1,7 @@
+{
+  "FLAVOR": "prod",
+  "APP_NAME": "{{app_name.titleCase()}}",
+  "API_BASE_URL": "https://api.example.com",
+  "ENABLE_NETWORK_LOGS": false,
+  "SHOW_DEBUG_BANNER": false
+}

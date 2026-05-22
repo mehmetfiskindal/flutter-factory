@@ -214,7 +214,7 @@ void main() {
   test('create passes bloc state and firebase backend to the starter brick',
       () async {
     final masonService = _RecordingMasonService();
-    final createdShells = <({String appName, String organization})>[];
+    final createdShells = <({String appName, String organization, List<String>? platforms})>[];
     final runner = CommandRunner<int>('test', 'test')
       ..addCommand(
         CreateCommand(
@@ -223,10 +223,12 @@ void main() {
           flutterShellCreator: ({
             required appName,
             required organization,
+            platforms,
           }) async {
             createdShells.add((
               appName: appName,
               organization: organization,
+              platforms: platforms,
             ));
           },
         ),
@@ -265,6 +267,7 @@ void main() {
           flutterShellCreator: ({
             required appName,
             required organization,
+            platforms,
           }) async {},
         ),
       );
@@ -302,6 +305,7 @@ void main() {
           flutterShellCreator: ({
             required appName,
             required organization,
+            platforms,
           }) async {},
         ),
       );
@@ -325,6 +329,49 @@ void main() {
     expect(masonService.vars['backend'], 'rest_firebase_hybrid');
     expect(masonService.vars['auth'], isFalse);
     expect(masonService.vars['offline_support'], isFalse);
+  });
+
+  test('create passes platforms option to flutterShellCreator and validates input', () async {
+    final masonService = _RecordingMasonService();
+    final createdShells = <({String appName, String organization, List<String>? platforms})>[];
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        CreateCommand(
+          logger: Logger(),
+          masonService: masonService,
+          flutterShellCreator: ({
+            required appName,
+            required organization,
+            platforms,
+          }) async {
+            createdShells.add((
+              appName: appName,
+              organization: organization,
+              platforms: platforms,
+            ));
+          },
+        ),
+      );
+
+    final exitCode1 = await runner.run([
+      'create',
+      'test_app',
+      '--platforms',
+      'android,ios',
+    ]);
+
+    expect(exitCode1, 0);
+    expect(createdShells.single.platforms, ['android', 'ios']);
+
+    expect(
+      runner.run([
+        'create',
+        'test_app',
+        '--platforms',
+        'android,invalid_platform',
+      ]),
+      throwsA(isA<UsageException>()),
+    );
   });
 
   test('starter brick supports all state/backend/auth/offline combinations',

@@ -18,7 +18,7 @@ import 'app/flavor.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final environment = AppEnvironment.fromFlavor(AppFlavor.current);
+  final environment = AppEnvironment.fromEnvironment();
   {{#is_firebase_backend}}await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

@@ -27,6 +27,7 @@ void run(HookContext context) {
     'is_firebase_backend': normalizedBackend == 'firebase',
     'uses_rest_cache': isRestBackend && (includeAuth || includeOffline),
     'uses_auth_refresh': isRestBackend && includeAuth,
+    'uses_rest_auth': isRestBackend && includeAuth,
     'uses_firebase_auth': isFirebaseBackend && includeAuth,
     'state_folder':
         normalizedStateManagement == 'bloc' ? 'controllers' : 'providers',

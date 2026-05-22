@@ -34,19 +34,34 @@ The goal is simple: generate a real Flutter app foundation that is ready for pro
 
 flutter-factory is built around **Clean Architecture** and a **feature-first** project structure.
 
-Instead of grouping the app only by technical layer, each feature owns its presentation, domain, and data concerns:
+Instead of grouping the app only by technical layer, each feature owns its presentation, domain, and data concerns. Furthermore, optional folders (`auth`, `cache`, `offline`, `firebase`) are generated conditionally based on configuration flags to keep the codebase clean.
 
 ```text
 lib/
+  app/
+    app.dart                  # Application widget wrapper
+    di.dart                   # Dependency injection configuration
+    flavor.dart               # Environment configuration loader
+    router.dart               # Main GoRouter configuration
   core/
-    config/
-    constants/
-    errors/
-    network/
-    routing/
-    utils/
+    di/                       # Core di / providers definition
+    error/                    # Custom failure and exception types
+    logging/                  # Logging utility and setup
+    network/                  # HTTP client, interceptors, and token storage (REST only)
+    router/                   # Route path constants
+    theme/                    # App styles and light/dark theme specifications
+    utils/                    # Common helper utilities and constants
+    cache/                    # Local storage caching service (REST and auth/offline only) [CONDITIONAL]
+    offline/                  # Network connectivity service (offline support only) [CONDITIONAL]
+    firebase/                 # Firebase services (Firebase backend only) [CONDITIONAL]
   features/
-    auth/
+    home/                     # Basic feature template (always generated)
+      presentation/
+        views/
+    settings/                 # Basic feature template (always generated)
+      presentation/
+        views/
+    auth/                     # Scaffolding for user authentication (optional) [CONDITIONAL]
       data/
         datasources/
         models/
@@ -56,17 +71,18 @@ lib/
         repositories/
         usecases/
       presentation/
-        pages/
-        providers/
+        views/
+        providers/            # (or controllers/ for BLoC)
         widgets/
 ```
 
 This structure helps teams keep feature code close together while still preserving clear separation of concerns:
 
-- **Presentation** handles UI, pages, widgets, and state bindings.
+- **Presentation** handles UI, views (screens), widgets, and state bindings (providers or controllers).
 - **Domain** contains entities, repository contracts, and use cases.
-- **Data** implements API calls, DTOs, local data sources, and repository implementations.
-- **Core** stores shared infrastructure such as routing, networking, errors, config, and utilities.
+- **Data** implements API/Firestore data sources, models, and repository implementations.
+- **App** contains global application-wide initializations, routing entry points, and dependency injection setup.
+- **Core** stores shared infrastructure such as common providers, custom error types, logging configuration, networking, themes, and helper utilities.
 
 ## Usage
 

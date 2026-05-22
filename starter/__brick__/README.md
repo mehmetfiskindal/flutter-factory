@@ -41,29 +41,42 @@ starter does not add an extra Firebase sync queue in V1.
 {{/is_firebase_backend}}
 {{#include_offline}}## Offline Support
 
-REST offline support includes cache infrastructure and a connectivity service.
-Use `offlineStatusProvider` with Riverpod or `ConnectivityService` directly with
-Bloc to decide when repositories should fall back to cached data.
+{{#is_rest_backend}}REST offline support includes Hive-based caching infrastructure (`lib/core/cache/`) and a connectivity status tracking service (`lib/core/offline/`).{{/is_rest_backend}}{{#is_firebase_backend}}Offline support includes a connectivity status tracking service (`lib/core/offline/`). Firestore includes native offline data persistence automatically.{{/is_firebase_backend}}
+
+Use `offlineStatusProvider` with Riverpod or `connectivityService` directly with Bloc (via dependency injection) to monitor connection status and handle offline states (e.g. showing the offline banner or falling back to local cached data).
 
 {{/include_offline}}
 
-## Run
+## Run & Environments (Flavors)
+
+This project supports multiple environments (flavors) using Flutter's native `--dart-define-from-file` configuration JSON files located in `config/env/`.
+
+Supported environments:
+- **Development**: `config/env/dev.json`
+- **Staging**: `config/env/staging.json`
+- **Production**: `config/env/prod.json`
+
+To run the app with a specific environment config:
 
 ```bash
-flutter pub get
-flutter run --dart-define=FLAVOR=dev
+# Run with Dev environment config
+flutter run --dart-define-from-file=config/env/dev.json
+
+# Run with Staging environment config
+flutter run --dart-define-from-file=config/env/staging.json
+
+# Run with Production environment config
+flutter run --dart-define-from-file=config/env/prod.json
 ```
 
-Supported flavors:
-
-- `dev`
-- `staging`
-- `prod`
-
-Override API base URLs with dart defines:
+To build the app for a specific environment:
 
 ```bash
-flutter run \
-  --dart-define=FLAVOR=dev \
-  --dart-define=DEV_API_BASE_URL=https://api.dev.example.com
+# Build APK with Production environment config
+flutter build apk --dart-define-from-file=config/env/prod.json
+
+# Build IPA/iOS with Staging environment config
+flutter build ipa --dart-define-from-file=config/env/staging.json
 ```
+
+You can customize each environment's variables (like `API_BASE_URL`, `APP_NAME`, `ENABLE_NETWORK_LOGS`, etc.) directly inside the corresponding JSON file.

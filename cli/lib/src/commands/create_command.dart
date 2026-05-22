@@ -10,6 +10,7 @@ import '../utils/name_validator.dart';
 typedef FlutterShellCreator = Future<void> Function({
   required String appName,
   required String organization,
+  List<String>? platforms,
 });
 
 class CreateCommand extends Command<int> {
@@ -42,6 +43,10 @@ class CreateCommand extends Command<int> {
       ..addFlag(
         'offline',
         help: 'Generate offline support scaffolding.',
+      )
+      ..addOption(
+        'platforms',
+        help: 'The platforms to support. (comma-separated: android, ios, web, macos, linux, windows)',
       );
   }
 
@@ -73,7 +78,7 @@ class CreateCommand extends Command<int> {
         argResults?['org'] as String? ?? config.organization ?? 'com.example';
     validateReverseDomain(organization, label: 'org');
 
-    final stateManagement =
+final stateManagement =
         argResults?['state'] as String? ?? config.stateManagement ?? 'riverpod';
     final backend = argResults?['backend'] as String? ??
         config.backend ??
@@ -81,10 +86,39 @@ class CreateCommand extends Command<int> {
     final includeAuth = argResults?['auth'] as bool? ?? config.auth;
     final includeOffline = argResults?['offline'] as bool? ?? config.offline;
 
+    final platformsString = argResults?['platforms'] as String?;
+    final List<String>? platforms = platformsString != null
+        ? platformsString
+            .split(',')
+            .map((p) => p.trim().toLowerCase())
+            .where((p) => p.isNotEmpty)
+            .toList()
+        : null;
+
+    const validPlatforms = {
+      'android',
+      'ios',
+      'web',
+      'macos',
+      'linux',
+      'windows'
+    };
+    if (platforms != null) {
+      for (final platform in platforms) {
+        if (!validPlatforms.contains(platform)) {
+          throw UsageException(
+            'Invalid platform: "$platform". Valid platforms are: ${validPlatforms.join(', ')}',
+            usage,
+          );
+        }
+      }
+    }
+
     _logger.info('Creating Flutter project "$appName"...');
     await _flutterShellCreator(
       appName: appName,
       organization: organization,
+      platforms: platforms,
     );
 
     await _masonService.generate(
@@ -109,17 +143,24 @@ class CreateCommand extends Command<int> {
 Future<void> createFlutterShell({
   required String appName,
   required String organization,
+  List<String>? platforms,
 }) async {
+  final args = ['create', '--org', organization];
+  if (platforms != null && platforms.isNotEmpty) {
+    args.addAll(['--platforms', platforms.join(',')]);
+  }
+  args.add(appName);
+
   final result = await Process.run(
     'flutter',
-    ['create', '--org', organization, appName],
+    args,
     runInShell: true,
   );
 
   if (result.exitCode != ExitCode.success.code) {
     throw UsageException(
       'flutter create failed:\n${result.stderr}',
-      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline]',
+      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline] [--platforms android,ios]',
     );
   }
 }

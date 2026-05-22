@@ -1,0 +1,7 @@
+{
+  "FLAVOR": "staging",
+  "APP_NAME": "{{app_name.titleCase()}} Staging",
+  "API_BASE_URL": "https://api.staging.example.com",
+  "ENABLE_NETWORK_LOGS": true,
+  "SHOW_DEBUG_BANNER": true
+}

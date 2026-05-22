@@ -180,7 +180,8 @@ import '../features/auth/domain/usecases/send_password_reset_email.dart';
 import '../features/auth/domain/usecases/sign_in.dart';
 import '../features/auth/domain/usecases/sign_out.dart';
 import '../features/auth/domain/usecases/watch_auth_state_changes.dart';
-{{/include_auth}}import 'flavor.dart';
+{{/include_auth}}{{#include_offline}}import '../core/offline/offline_service.dart';
+{{/include_offline}}import 'flavor.dart';
 
 class AppDependencies {
   const AppDependencies({
@@ -197,7 +198,8 @@ class AppDependencies {
     required this.signInUseCase,
     required this.signOutUseCase,
     required this.watchAuthStateChangesUseCase,
-    {{/include_auth}}
+    {{/include_auth}}{{#include_offline}}required this.connectivityService,
+    {{/include_offline}}
   });
 
   final AppEnvironment environment;
@@ -213,7 +215,8 @@ class AppDependencies {
   final SignInUseCase signInUseCase;
   final SignOutUseCase signOutUseCase;
   final WatchAuthStateChangesUseCase watchAuthStateChangesUseCase;
-  {{/include_auth}}
+  {{/include_auth}}{{#include_offline}}final ConnectivityService connectivityService;
+  {{/include_offline}}
 }
 
 Future<AppDependencies> configureDependencies(
@@ -241,7 +244,8 @@ Future<AppDependencies> configureDependencies(
     signInUseCase: SignInUseCase(authRepository),
     signOutUseCase: SignOutUseCase(authRepository),
     watchAuthStateChangesUseCase: WatchAuthStateChangesUseCase(authRepository),
-    {{/include_auth}}
+    {{/include_auth}}{{#include_offline}}connectivityService: ConnectivityService(),
+    {{/include_offline}}
   );
 }
 {{/is_firebase_backend}}{{/is_bloc}}

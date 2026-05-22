@@ -13,12 +13,13 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  {{#is_rest_backend}}
   {{#include_offline}}connectivity_plus: ^6.1.5
   {{/include_offline}}
+  {{#is_rest_backend}}
   dio: ^5.9.0
-  hive: ^2.2.3
+  {{#uses_rest_cache}}hive: ^2.2.3
   path_provider: ^2.1.5
+  {{/uses_rest_cache}}
   {{/is_rest_backend}}{{#is_firebase_backend}}
   cloud_firestore: ^6.3.0
   {{#uses_firebase_auth}}firebase_auth: ^6.4.0

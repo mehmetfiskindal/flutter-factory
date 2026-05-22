@@ -32,39 +32,32 @@ class AppEnvironment {
     required this.showDebugBanner,
   });
 
-  factory AppEnvironment.fromFlavor(AppFlavor flavor) {
-    return switch (flavor) {
-      AppFlavor.dev => const AppEnvironment(
-          flavor: AppFlavor.dev,
-          appName: '{{app_name.titleCase()}} Dev',
-          apiBaseUrl: String.fromEnvironment(
-            'DEV_API_BASE_URL',
-            defaultValue: 'https://api.dev.example.com',
-          ),
-          enableNetworkLogs: true,
-          showDebugBanner: true,
-        ),
-      AppFlavor.staging => const AppEnvironment(
-          flavor: AppFlavor.staging,
-          appName: '{{app_name.titleCase()}} Staging',
-          apiBaseUrl: String.fromEnvironment(
-            'STAGING_API_BASE_URL',
-            defaultValue: 'https://api.staging.example.com',
-          ),
-          enableNetworkLogs: true,
-          showDebugBanner: true,
-        ),
-      AppFlavor.prod => const AppEnvironment(
-          flavor: AppFlavor.prod,
-          appName: '{{app_name.titleCase()}}',
-          apiBaseUrl: String.fromEnvironment(
-            'PROD_API_BASE_URL',
-            defaultValue: 'https://api.example.com',
-          ),
-          enableNetworkLogs: false,
-          showDebugBanner: false,
-        ),
-    };
+  factory AppEnvironment.fromEnvironment() {
+    const flavorName = String.fromEnvironment(
+      'FLAVOR',
+      defaultValue: 'dev',
+    );
+    final flavor = AppFlavor.fromName(flavorName);
+
+    return AppEnvironment(
+      flavor: flavor,
+      appName: const String.fromEnvironment(
+        'APP_NAME',
+        defaultValue: '{{app_name.titleCase()}} Dev',
+      ),
+      apiBaseUrl: const String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'https://api.dev.example.com',
+      ),
+      enableNetworkLogs: const bool.fromEnvironment(
+        'ENABLE_NETWORK_LOGS',
+        defaultValue: true,
+      ),
+      showDebugBanner: const bool.fromEnvironment(
+        'SHOW_DEBUG_BANNER',
+        defaultValue: true,
+      ),
+    );
   }
 
   final AppFlavor flavor;

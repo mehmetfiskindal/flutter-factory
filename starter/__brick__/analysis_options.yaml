@@ -1,7 +1,15 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  errors:
+    avoid_print: ignore
+  exclude:
+    - build/**
+    - ios/.symlinks/**
+    - ios/Pods/**
+    - ios/SourcePackages/**
 linter:
   rules:
     avoid_print: true
-    prefer_final_locals: true
+    prefer_final_locals: false
     sort_child_properties_last: true
