@@ -13,9 +13,20 @@ The same brick supports both state-management presets:
 ```bash
 flutter_factory create my_app --state riverpod
 flutter_factory create my_app --state bloc
+flutter_factory create my_app --state native
 flutter_factory create my_app --state riverpod --backend firebase
 flutter_factory create my_app --state bloc --backend firebase
+flutter_factory create my_app --state native --backend firebase
 ```
+
+`native` uses Flutter SDK `ChangeNotifier` and `ListenableBuilder` for view
+models. It does not add Riverpod or Bloc state-management dependencies. Use
+`setState` for short-lived state that belongs to a single widget.
+
+The generated `.flutter_factory.yaml` records the selected state management,
+backend, organization, auth, and offline settings. The CLI reads it when adding
+features, pages, or API services. The API service brick is available only with
+the REST + Firebase hybrid backend because Firebase-only projects omit Dio.
 
 Expected core files:
 
@@ -24,6 +35,6 @@ Expected core files:
 - `lib/app/`: root app widget, theme, localization, and bootstrap code.
 - `lib/core/`: shared config, networking, routing, errors, constants, and utilities.
 - `lib/features/`: initial sample feature or generated feature destination.
-- `test/`: baseline widget and unit tests.
+- `test/`: a baseline widget-test placeholder for generated app behavior.
 - `analysis_options.yaml`: lint configuration.
 - Platform folders: `android/`, `ios/`, `web/`, `macos/`, `linux/`, and `windows/` as needed.

@@ -16,3 +16,12 @@ vars:
     description: Route path for the generated page.
     default: ""
     prompt: What route path should be used?
+  state_management:
+    type: enum
+    description: State management solution used for the generated page.
+    default: riverpod
+    values:
+      - riverpod
+      - bloc
+      - native
+    prompt: Which state management solution should be used?

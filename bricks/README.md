@@ -13,8 +13,9 @@ From the repository root, use the local brick registry:
 ```bash
 mason get
 mason make feature --name profile --state_management riverpod
-mason make api_service --name billing --endpoint /v1/billing
-mason make page --name dashboard --feature profile
+mason make api_service --name billing --endpoint /v1/billing --state_management bloc
+mason make page --name dashboard --feature profile --state_management bloc
+mason make page --name dashboard --feature profile --state_management native
 mason make usecase --name sync_profile --feature profile
 mason make widget --name profile_tile --feature profile
 ```
@@ -36,8 +37,11 @@ Expected structure per brick:
 
 Current bricks:
 
-- `feature/`: creates a full feature module with Riverpod or Bloc presentation scaffolding.
-- `page/`: creates a page inside an existing feature.
-- `api_service/`: creates Dio-based API service scaffolding with Freezed model generation.
+- `feature/`: creates a full feature module with Riverpod, Bloc, or Flutter SDK ViewModel presentation scaffolding.
+- `page/`: creates a Riverpod, Bloc, or Flutter SDK ViewModel page inside an existing feature.
+- `api_service/`: creates Dio-based API service scaffolding with Freezed model generation and Riverpod providers or a dependency bundle. It requires the REST + Firebase hybrid backend.
 - `usecase/`: creates a domain use case.
 - `widget/`: creates reusable feature or shared widgets.
+
+See the [brick reference](../docs/bricks.md) for generated files and variable
+details.

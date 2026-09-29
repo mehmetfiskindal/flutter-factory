@@ -11,3 +11,5 @@ final offlineStatusProvider = StreamProvider<OfflineStatus>((ref) {
 });
 {{/is_riverpod}}{{#is_bloc}}export 'offline_service.dart';
 {{/is_bloc}}
+{{#is_native}}export 'offline_service.dart';
+{{/is_native}}

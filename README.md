@@ -6,8 +6,7 @@
 
 It is designed for mid-to-senior Flutter developers, freelancers, and small-to-medium teams that want to move fast without rebuilding the same architecture, folders, services, pages, and feature modules from scratch every time.
 
-<!-- Demo GIF placeholder -->
-![flutter-factory demo](docs/assets/demo.gif)
+Guides: [CLI reference](file:///Users/mehmetfiskindal/Developer/flutter-starter-project/docs/cli.md) · [Architecture](file:///Users/mehmetfiskindal/Developer/flutter-starter-project/docs/architecture.md) · [Bricks](file:///Users/mehmetfiskindal/Developer/flutter-starter-project/docs/bricks.md) · [Starter template](file:///Users/mehmetfiskindal/Developer/flutter-starter-project/docs/starter-template.md)
 
 ## What Is flutter-factory?
 
@@ -72,7 +71,9 @@ lib/
         usecases/
       presentation/
         views/
-        providers/            # (or controllers/ for BLoC)
+        providers/            # Riverpod
+        controllers/          # Bloc
+        viewmodels/           # Flutter SDK ChangeNotifier
         widgets/
 ```
 
@@ -116,6 +117,7 @@ Now you can generate from local bricks without BrickHub:
 ```bash
 flutter_factory doctor
 flutter_factory create my_app --org com.fiskindal --state riverpod --auth --offline
+flutter_factory create my_app --org com.fiskindal --state native --auth
 cd my_app
 flutter_factory add feature profile --state riverpod
 flutter_factory add api billing --endpoint /v1/billing
@@ -192,6 +194,7 @@ Create a new Flutter application:
 flutter_factory create my_app --org com.fiskindal --state riverpod --auth --offline
 flutter_factory create my_app --org com.fiskindal --state riverpod --backend firebase
 flutter_factory create my_app --org com.fiskindal --state bloc --backend firebase
+flutter_factory create my_app --org com.fiskindal --state native --backend firebase
 ```
 
 Generate a new feature:
@@ -223,6 +226,14 @@ Generate without running Freezed/build_runner immediately:
 flutter_factory add api billing --endpoint /v1/billing --no-codegen
 ```
 
+Generated projects keep their selected state management and backend in
+`.flutter_factory.yaml`, so `add feature`, `add page`, and `add api` use the
+project's preset by default. Override page or API wiring with `--state bloc`,
+`--state riverpod`, or `--state native`. Native output uses Flutter SDK
+`ChangeNotifier` and `ListenableBuilder` and adds no state-management package.
+The API brick requires the REST + Firebase hybrid backend;
+it is not available for Firebase-only projects.
+
 Overwrite generated files intentionally:
 
 ```bash
@@ -246,18 +257,17 @@ flutter_factory verify --full --no-analyze
 
 flutter-factory is designed to support modern Flutter production stacks while keeping choices explicit.
 
-| Area | Default | Optional / Planned |
-| --- | --- | --- |
-| State Management | Riverpod | Bloc |
-| Networking | Dio | Interceptors, retries, auth headers |
-| Backend | REST + Firebase hybrid | Firebase Auth, Firestore, Cloud Storage |
-| Routing | GoRouter | Route guards, shell routes |
-| Models | Freezed | Equatable |
-| Serialization | json_serializable | Custom converters |
-| Code Generation | build_runner | Watch mode helpers |
-| Project Generation | Mason | Custom bricks |
-| Testing | flutter_test | mocktail, integration_test |
-| Environment Config | Dart defines | Flavors |
+| Area | Available |
+| --- | --- |
+| State management | Riverpod, Bloc, or Flutter SDK ViewModels (`ChangeNotifier`) |
+| Networking | Dio for REST projects, with auth token refresh when REST auth is enabled |
+| Backend | REST + Firebase hybrid, or Firebase with Firestore and Cloud Storage |
+| Routing | GoRouter with auth redirects and shell routes |
+| Models and serialization | Freezed and json_serializable |
+| Code generation | build_runner |
+| Project generation | Mason bricks |
+| Tests | Starter widget test, plus CLI tests and generated-project analysis |
+| Environment config | `--dart-define` flavor values |
 
 ## Why This Project?
 
@@ -290,7 +300,7 @@ flutter-factory is not just a starter template. It is a repeatable app factory f
 - Feature, API service, page, usecase, and widget generation.
 - Default collision protection with opt-in `--force`.
 - Optional `add api --no-codegen`.
-- Generated app smoke target: `flutter analyze` and `flutter test`.
+- Generated app checks: `flutter_factory verify` runs `flutter pub get` and `flutter analyze`; run `flutter test` in a generated project for its starter test.
 
 ## Firebase Projects
 
@@ -328,10 +338,11 @@ flutterfire configure
 - [x] `flutter_factory doctor` environment checks.
 - [x] Riverpod-first project template.
 - [x] Bloc-compatible project template.
+- [x] Flutter SDK state management without a third-party state package.
 - [x] Dio networking module with interceptors and typed error handling.
 - [x] GoRouter setup with generated route examples.
 - [x] Freezed and json_serializable model generation.
-- [ ] Testing presets for unit, widget, and integration tests.
+- [ ] Meaningful unit, widget, and integration test presets (the current starter test is a smoke placeholder).
 - [ ] CI/CD starter workflows.
 - [ ] Multiple app templates for SaaS, marketplace, admin panel, and mobile-first products.
 - [ ] Documentation website with guides and brick authoring recipes.
@@ -361,6 +372,4 @@ If you are proposing a new brick, include the intended generated folder structur
 
 ## License
 
-This project is expected to be released under the MIT License.
-
-See [LICENSE](LICENSE) for details once the license file is added.
+This project is released under the [MIT License](file:///Users/mehmetfiskindal/Developer/flutter-starter-project/LICENSE).

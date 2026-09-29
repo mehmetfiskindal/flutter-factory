@@ -4,7 +4,12 @@ void run(HookContext context) {
   final stateManagement =
       (context.vars['state_management'] as String?)?.trim().toLowerCase();
   final isBloc = stateManagement == 'bloc';
-  final normalizedStateManagement = isBloc ? 'bloc' : 'riverpod';
+  final isNative = stateManagement == 'native';
+  final normalizedStateManagement = isBloc
+      ? 'bloc'
+      : isNative
+          ? 'native'
+          : 'riverpod';
   final backend = (context.vars['backend'] as String?)?.trim().toLowerCase();
   final isFirebaseBackend = backend == 'firebase';
   final normalizedBackend =
@@ -21,16 +26,21 @@ void run(HookContext context) {
     'offline_support': includeOffline,
     'include_auth': includeAuth,
     'include_offline': includeOffline,
-    'is_riverpod': !isBloc,
+    'is_riverpod': !isBloc && !isNative,
     'is_bloc': isBloc,
+    'is_native': isNative,
+    'uses_direct_di': isBloc || isNative,
     'is_rest_backend': isRestBackend,
     'is_firebase_backend': normalizedBackend == 'firebase',
     'uses_rest_cache': isRestBackend && (includeAuth || includeOffline),
     'uses_auth_refresh': isRestBackend && includeAuth,
     'uses_rest_auth': isRestBackend && includeAuth,
     'uses_firebase_auth': isFirebaseBackend && includeAuth,
-    'state_folder':
-        normalizedStateManagement == 'bloc' ? 'controllers' : 'providers',
+    'state_folder': switch (normalizedStateManagement) {
+      'bloc' => 'controllers',
+      'native' => 'viewmodels',
+      _ => 'providers',
+    },
   };
 }
 

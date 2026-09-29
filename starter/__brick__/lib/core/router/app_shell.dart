@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-{{#include_offline}}import '../offline/offline_banner.dart';
+{{#include_offline}}{{^is_native}}import '../offline/offline_banner.dart';
+{{/is_native}}
 {{/include_offline}}
 import 'route_paths.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({
     required this.child,
+    this.offlineBanner,
     super.key,
   });
 
   final Widget child;
+  final Widget? offlineBanner;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,7 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       body: {{#include_offline}}Column(
         children: [
-          const OfflineBanner(),
+          {{#is_native}}offlineBanner!,{{/is_native}}{{^is_native}}offlineBanner ?? const OfflineBanner(),{{/is_native}}
           Expanded(child: child),
         ],
       ){{/include_offline}}{{^include_offline}}child{{/include_offline}},

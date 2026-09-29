@@ -1,4 +1,10 @@
-{{#is_riverpod}}import 'package:flutter/material.dart';
+{{#is_native}}import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../viewmodels/{{name.snakeCase()}}_view_model.dart';
+import '../widgets/{{name.snakeCase()}}_empty_state.dart';
+{{/is_native}}{{#is_riverpod}}import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/{{name.snakeCase()}}_provider.dart';
@@ -64,3 +70,53 @@ final class {{name.pascalCase()}}View extends StatelessWidget {
   }
 }
 {{/is_bloc}}
+{{#is_native}}
+final class {{name.pascalCase()}}View extends StatefulWidget {
+  const {{name.pascalCase()}}View({
+    required this.viewModel,
+    super.key,
+  });
+
+  final {{name.pascalCase()}}ViewModel viewModel;
+
+  @override
+  State<{{name.pascalCase()}}View> createState() =>
+      _{{name.pascalCase()}}ViewState();
+}
+
+class _{{name.pascalCase()}}ViewState extends State<{{name.pascalCase()}}View> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(widget.viewModel.load());
+  }
+
+  @override
+  void dispose() {
+    widget.viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: widget.viewModel,
+      builder: (context, child) {
+        final viewModel = widget.viewModel;
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('{{name.titleCase()}}')),
+          body: switch ((viewModel.isLoading, viewModel.entity, viewModel.error)) {
+            (true, _, _) => const Center(child: CircularProgressIndicator()),
+            (_, final entity?, _) => Center(child: Text(entity.title)),
+            (_, _, final error?) => {{name.pascalCase()}}EmptyState(
+                message: error,
+              ),
+            _ => const {{name.pascalCase()}}EmptyState(),
+          },
+        );
+      },
+    );
+  }
+}
+{{/is_native}}

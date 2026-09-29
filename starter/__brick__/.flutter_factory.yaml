@@ -1,0 +1,5 @@
+state_management: {{state_management}}
+backend: {{backend}}
+organization: {{org_name}}
+auth: {{include_auth}}
+offline_support: {{include_offline}}

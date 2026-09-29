@@ -8,8 +8,8 @@ Current commands:
 
 - `flutter_factory create <app_name>`: creates a new Flutter project from the starter brick.
 - `flutter_factory add feature <name>`: adds a feature-first Clean Architecture module.
-- `flutter_factory add api <name> --endpoint <endpoint>`: adds Dio service, Freezed model, repository, use cases, and Riverpod providers.
-- `flutter_factory add page <name> --feature <feature_name>`: adds a page inside a feature and wires it into the starter router when route markers are present.
+- `flutter_factory add api <name> --endpoint <endpoint>`: adds Dio service, Freezed model, repository, use cases, and state-specific wiring.
+- `flutter_factory add page <name> --feature <feature_name>`: adds a Riverpod, Bloc, or Flutter SDK ViewModel page inside a feature and wires it into the starter router when route markers are present.
 - `flutter_factory add usecase <name> --feature <feature_name>`: adds a domain use case.
 - `flutter_factory add widget <name> --feature <feature_name>`: adds a reusable widget.
 - `flutter_factory config`: runs interactive setup for state management, backend, auth, and offline defaults.
@@ -31,6 +31,7 @@ Then run:
 
 ```bash
 flutter_factory create my_app --org com.fiskindal --state riverpod --auth --offline
+flutter_factory create my_app --org com.fiskindal --state native --auth
 cd my_app
 flutter_factory add feature profile --state riverpod
 flutter_factory add api billing --endpoint /v1/billing
@@ -49,6 +50,12 @@ dart run cli/bin/flutter_factory.dart create my_app --org com.fiskindal --state 
 ```
 
 `FLUTTER_FACTORY_ROOT` should point to the repository root that contains `mason.yaml`, `starter/`, `bricks/`, and `cli/`.
+
+`create` writes the selected defaults to `.flutter_factory.yaml` in the generated
+project. Later `add feature`, `add page`, and `add api` commands use that
+project's state-management choice unless `--state` is provided. The API brick
+requires the REST + Firebase hybrid backend; Firebase-only apps do not include
+Dio.
 
 Expected core files:
 

@@ -1,0 +1,120 @@
+{{#is_native}}{{#is_firebase_backend}}import 'dart:async';
+
+{{/is_firebase_backend}}import 'package:flutter/foundation.dart';
+
+import '../../domain/entities/auth_user.dart';
+{{#is_firebase_backend}}import '../../domain/usecases/create_account.dart';
+import '../../domain/usecases/send_password_reset_email.dart';
+import '../../domain/usecases/watch_auth_state_changes.dart';
+{{/is_firebase_backend}}import '../../domain/usecases/get_current_user.dart';
+import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_out.dart';
+
+final class AuthViewModel extends ChangeNotifier {
+  AuthViewModel({
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+    required SignInUseCase signInUseCase,
+    required SignOutUseCase signOutUseCase,
+    {{#is_firebase_backend}}required CreateAccountUseCase createAccountUseCase,
+    required SendPasswordResetEmailUseCase sendPasswordResetEmailUseCase,
+    required WatchAuthStateChangesUseCase watchAuthStateChangesUseCase,
+    {{/is_firebase_backend}}
+  })  : _getCurrentUserUseCase = getCurrentUserUseCase,
+        _signInUseCase = signInUseCase,
+        _signOutUseCase = signOutUseCase,
+        {{#is_firebase_backend}}_createAccountUseCase = createAccountUseCase,
+        _sendPasswordResetEmailUseCase = sendPasswordResetEmailUseCase,
+        _watchAuthStateChangesUseCase = watchAuthStateChangesUseCase,
+        {{/is_firebase_backend}}super();
+
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final SignInUseCase _signInUseCase;
+  final SignOutUseCase _signOutUseCase;
+  {{#is_firebase_backend}}final CreateAccountUseCase _createAccountUseCase;
+  final SendPasswordResetEmailUseCase _sendPasswordResetEmailUseCase;
+  final WatchAuthStateChangesUseCase _watchAuthStateChangesUseCase;
+  StreamSubscription<AuthUser?>? _authSubscription;
+  {{/is_firebase_backend}}
+
+  AuthUser? _user;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  AuthUser? get user => _user;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> initialize() async {
+    try {
+      _user = await _getCurrentUserUseCase();
+      {{#is_firebase_backend}}_authSubscription =
+          _watchAuthStateChangesUseCase().listen((user) {
+        _user = user;
+        notifyListeners();
+      }, onError: (Object error) {
+        _errorMessage = error.toString();
+        notifyListeners();
+      });
+      {{/is_firebase_backend}}
+    } on Exception catch (error) {
+      _errorMessage = error.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signIn({
+    required String email,
+    required String password,
+  }) {
+    return _run(() async {
+      _user = await _signInUseCase(email: email, password: password);
+    });
+  }
+
+  Future<void> signOut() {
+    return _run(() async {
+      await _signOutUseCase();
+      _user = null;
+    });
+  }
+
+  {{#is_firebase_backend}}Future<void> createAccount({
+    required String email,
+    required String password,
+  }) {
+    return _run(() async {
+      _user = await _createAccountUseCase(email: email, password: password);
+    });
+  }
+
+  Future<void> sendPasswordResetEmail({required String email}) {
+    return _run(() async {
+      await _sendPasswordResetEmailUseCase(email: email);
+    });
+  }
+
+  {{/is_firebase_backend}}Future<void> _run(Future<void> Function() action) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await action();
+    } on Exception catch (error) {
+      _errorMessage = error.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  {{#is_firebase_backend}}@override
+  void dispose() {
+    unawaited(_authSubscription?.cancel());
+    super.dispose();
+  }
+  {{/is_firebase_backend}}
+}
+{{/is_native}}

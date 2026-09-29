@@ -10,6 +10,8 @@ import '../../../../core/utils/helpers/validators.dart';
 import '../providers/auth_controller.dart';
 {{/is_riverpod}}{{#is_bloc}}import '../controllers/auth_bloc.dart';
 {{/is_bloc}}
+{{#is_native}}import '../viewmodels/auth_view_model.dart';
+{{/is_native}}
 
 {{#is_riverpod}}
 class SignInView extends ConsumerStatefulWidget {
@@ -296,3 +298,155 @@ class _SignInViewState extends State<SignInView> {
   {{/is_firebase_backend}}
 }
 {{/is_bloc}}
+{{#is_native}}
+class SignInView extends StatefulWidget {
+  const SignInView({
+    required this.viewModel,
+    super.key,
+  });
+
+  final AuthViewModel viewModel;
+
+  @override
+  State<SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<SignInView> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController(text: 'demo@example.com');
+  final _passwordController = TextEditingController(text: 'password');
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: widget.viewModel,
+      builder: (context, child) {
+        final viewModel = widget.viewModel;
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('Sign in')),
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Welcome back',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: Validators.email,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration:
+                              const InputDecoration(labelText: 'Password'),
+                          validator: Validators.password,
+                        ),
+                        const SizedBox(height: 20),
+                        FilledButton(
+                          onPressed: viewModel.isLoading ? null : _submit,
+                          child: viewModel.isLoading
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Sign in'),
+                        ),
+                        {{#is_firebase_backend}}const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed:
+                              viewModel.isLoading ? null : _createAccount,
+                          child: const Text('Create account'),
+                        ),
+                        TextButton(
+                          onPressed:
+                              viewModel.isLoading ? null : _resetPassword,
+                          child: const Text('Forgot password?'),
+                        ),
+                        {{/is_firebase_backend}}
+                        if (viewModel.errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          AppErrorView(error: viewModel.errorMessage!),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    await widget.viewModel.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+  }
+
+  {{#is_firebase_backend}}Future<void> _createAccount() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    await widget.viewModel.createAccount(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    final emailError = Validators.email(email);
+    if (emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(emailError)),
+      );
+      return;
+    }
+
+    await widget.viewModel.sendPasswordResetEmail(email: email);
+    if (!mounted) {
+      return;
+    }
+
+    final message = widget.viewModel.errorMessage;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message ?? 'Password reset email sent.'),
+      ),
+    );
+  }
+  {{/is_firebase_backend}}
+}
+{{/is_native}}

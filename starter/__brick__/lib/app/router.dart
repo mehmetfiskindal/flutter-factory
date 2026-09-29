@@ -17,6 +17,10 @@ import '../features/auth/presentation/providers/auth_controller.dart';
 {{#include_auth}}
 import '../features/auth/presentation/views/sign_in_view.dart';
 {{/include_auth}}
+{{#is_native}}import 'di.dart';
+{{#include_auth}}import '../features/auth/presentation/viewmodels/auth_view_model.dart';
+{{/include_auth}}{{#include_offline}}import '../core/offline/offline_banner.dart';
+{{/include_offline}}{{/is_native}}
 import '../features/home/presentation/views/home_view.dart';
 import '../features/settings/presentation/views/settings_view.dart';
 // flutter_factory: route-imports-start
@@ -191,3 +195,73 @@ class GoRouterBlocRefreshNotifier extends ChangeNotifier {
 }
 {{/include_auth}}
 {{/is_bloc}}
+{{#is_native}}
+GoRouter createAppRouter(
+  AppDependencies dependencies,
+  {{#include_auth}}AuthViewModel authViewModel{{/include_auth}}
+) {
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: RoutePaths.home,
+    {{#include_auth}}refreshListenable: authViewModel,
+    redirect: (context, state) {
+      if (authViewModel.isLoading) {
+        return null;
+      }
+
+      final isSignedIn = authViewModel.user != null;
+      final isSigningIn = state.matchedLocation == RoutePaths.signIn;
+
+      if (!isSignedIn && !isSigningIn) {
+        return RoutePaths.signIn;
+      }
+
+      if (isSignedIn && isSigningIn) {
+        return RoutePaths.home;
+      }
+
+      return null;
+    },
+    {{/include_auth}}
+    routes: [
+      {{#include_auth}}GoRoute(
+        path: RoutePaths.signIn,
+        name: RouteNames.signIn,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SignInView(viewModel: authViewModel),
+      ),
+      {{/include_auth}}
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) {
+          return AppShell(
+            {{#include_offline}}offlineBanner: OfflineBanner(
+              connectivityService: dependencies.connectivityService,
+            ),
+            {{/include_offline}}child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: RoutePaths.home,
+            name: RouteNames.home,
+            builder: (context, state) => {{#include_auth}}HomeView(
+              viewModel: authViewModel,
+            ){{/include_auth}}{{^include_auth}}const HomeView(){{/include_auth}},
+          ),
+          GoRoute(
+            path: RoutePaths.settings,
+            name: RouteNames.settings,
+            builder: (context, state) => SettingsView(
+              environment: dependencies.environment{{#include_auth}},
+              viewModel: authViewModel{{/include_auth}},
+            ),
+          ),
+          // flutter_factory: shell-routes-start
+          // flutter_factory: shell-routes-end
+        ],
+      ),
+    ],
+  );
+}
+{{/is_native}}

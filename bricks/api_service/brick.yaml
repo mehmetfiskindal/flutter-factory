@@ -1,5 +1,5 @@
 name: api_service
-description: Generates Dio service, Freezed model, repository, use cases, and Riverpod providers.
+description: Generates Dio service, Freezed model, repository, use cases, and state-management wiring.
 version: 0.1.0
 
 vars:
@@ -12,6 +12,15 @@ vars:
     description: Optional REST endpoint. Defaults to /<name-param-case>.
     default: ""
     prompt: What is the REST endpoint?
+  state_management:
+    type: enum
+    description: State management solution used for API wiring.
+    default: riverpod
+    values:
+      - riverpod
+      - bloc
+      - native
+    prompt: Which state management solution should be used?
   run_codegen:
     type: boolean
     description: Whether build_runner should run after generation.

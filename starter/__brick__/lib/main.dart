@@ -14,6 +14,8 @@ import 'app/flavor.dart';
 {{#is_bloc}}{{#include_auth}}import 'features/auth/presentation/controllers/auth_bloc.dart';
 {{/include_auth}}
 {{/is_bloc}}
+{{#is_native}}{{#include_auth}}import 'features/auth/presentation/viewmodels/auth_view_model.dart';
+{{/include_auth}}{{/is_native}}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,17 @@ Future<void> main() async {
 
   {{/is_firebase_backend}}
   final dependencies = await configureDependencies(environment);
+  {{#is_native}}{{#include_auth}}final authViewModel = AuthViewModel(
+    {{#is_firebase_backend}}createAccountUseCase: dependencies.createAccountUseCase,
+    sendPasswordResetEmailUseCase: dependencies.sendPasswordResetEmailUseCase,
+    watchAuthStateChangesUseCase: dependencies.watchAuthStateChangesUseCase,
+    {{/is_firebase_backend}}getCurrentUserUseCase: dependencies.getCurrentUserUseCase,
+    signInUseCase: dependencies.signInUseCase,
+    signOutUseCase: dependencies.signOutUseCase,
+  );
+  await authViewModel.initialize();
+
+  {{/include_auth}}{{/is_native}}
 
   runApp(
     {{#is_riverpod}}
@@ -88,6 +101,11 @@ Future<void> main() async {
         child: const {{app_name.pascalCase()}}Application(),
       ){{/include_auth}}{{^include_auth}}const {{app_name.pascalCase()}}Application(){{/include_auth}},
     ),
-    {{/is_bloc}}
+    {{/is_bloc}}{{#is_native}}
+    {{app_name.pascalCase()}}Application(
+      dependencies: dependencies,
+      {{#include_auth}}authViewModel: authViewModel,{{/include_auth}}
+    ),
+    {{/is_native}}
   );
 }

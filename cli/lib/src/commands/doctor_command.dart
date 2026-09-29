@@ -53,6 +53,8 @@ class DoctorCommand extends Command<int> {
         'bricks/feature/brick.yaml',
         'bricks/api_service/brick.yaml',
         'bricks/page/brick.yaml',
+        'bricks/usecase/brick.yaml',
+        'bricks/widget/brick.yaml',
       ]) {
         final file = File(p.join(root.path, path));
         if (file.existsSync()) {

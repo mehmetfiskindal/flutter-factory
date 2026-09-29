@@ -103,7 +103,7 @@ Core files expected inside `docs/`:
 - `architecture.md`: Clean Architecture and feature-first conventions.
 - `starter-template.md`: starter app behavior and stack decisions.
 - `contributing.md`: contribution workflow.
-- `assets/demo.gif`: README demo placeholder target.
+- `assets/`: shared documentation media, when present.
 
 ## `README.md`
 

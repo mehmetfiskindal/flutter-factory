@@ -52,7 +52,7 @@ class AddFeatureCommand extends Command<int> {
         _masonService = masonService {
     argParser.addOption(
       'state',
-      allowed: const ['riverpod', 'bloc'],
+      allowed: const ['riverpod', 'bloc', 'native'],
       help: 'State management solution for the generated feature.',
     );
     argParser.addFlag(
@@ -70,7 +70,7 @@ class AddFeatureCommand extends Command<int> {
 
   @override
   String get invocation =>
-      'flutter_factory add feature <name> [--state riverpod|bloc] [--force]';
+      'flutter_factory add feature <name> [--state riverpod|bloc|native] [--force]';
 
   @override
   String get name => 'feature';
@@ -117,6 +117,11 @@ class AddApiCommand extends Command<int> {
       help: 'REST endpoint. Defaults to /<name-param-case>.',
     );
     argParser
+      ..addOption(
+        'state',
+        allowed: const ['riverpod', 'bloc', 'native'],
+        help: 'State management solution for generated API wiring.',
+      )
       ..addFlag(
         'force',
         negatable: false,
@@ -138,7 +143,7 @@ class AddApiCommand extends Command<int> {
 
   @override
   String get invocation =>
-      'flutter_factory add api <name> [--endpoint <endpoint>] [--no-codegen] [--force]';
+      'flutter_factory add api <name> [--endpoint <endpoint>] [--state riverpod|bloc|native] [--no-codegen] [--force]';
 
   @override
   String get name => 'api';
@@ -156,6 +161,17 @@ class AddApiCommand extends Command<int> {
 
     final endpoint = argResults?['endpoint'] as String?;
     final codegen = argResults?['codegen'] as bool? ?? true;
+    final config = FlutterFactoryConfig.load();
+    if (config.backend == 'firebase') {
+      throw UsageException(
+        'The api brick generates Dio REST scaffolding, but this project is '
+            'configured for Firebase only. Create the project with '
+            '--backend rest_firebase_hybrid to use add api.',
+        usage,
+      );
+    }
+    final stateManagement =
+        argResults?['state'] as String? ?? config.stateManagement ?? 'riverpod';
 
     _logger.info('Adding API "$apiName"...');
 
@@ -164,6 +180,7 @@ class AddApiCommand extends Command<int> {
       force: force,
       vars: {
         'name': apiName,
+        'state_management': stateManagement,
         'run_codegen': codegen,
         if (endpoint != null) 'endpoint': endpoint,
       },
@@ -206,6 +223,11 @@ class AddPageCommand extends Command<int> {
         'path',
         help: 'Route path. Defaults to /<name-param-case>.',
       )
+      ..addOption(
+        'state',
+        allowed: const ['riverpod', 'bloc', 'native'],
+        help: 'State management solution for the generated page.',
+      )
       ..addFlag(
         'route',
         defaultsTo: true,
@@ -226,7 +248,7 @@ class AddPageCommand extends Command<int> {
 
   @override
   String get invocation =>
-      'flutter_factory add page <name> --feature <feature_name> [--path /custom-path] [--no-route] [--force]';
+      'flutter_factory add page <name> --feature <feature_name> [--path /custom-path] [--state riverpod|bloc|native] [--no-route] [--force]';
 
   @override
   String get name => 'page';
@@ -247,6 +269,9 @@ class AddPageCommand extends Command<int> {
       validateRoutePath(routePath);
     }
     final force = argResults?['force'] as bool? ?? false;
+    final config = FlutterFactoryConfig.load();
+    final stateManagement =
+        argResults?['state'] as String? ?? config.stateManagement ?? 'riverpod';
     ensureFileDoesNotExist(
       p.join(
         'lib',
@@ -267,6 +292,7 @@ class AddPageCommand extends Command<int> {
       vars: {
         'name': pageName,
         'feature': featureName,
+        'state_management': stateManagement,
         if (routePath != null) 'route_path': routePath,
       },
     );

@@ -26,7 +26,7 @@ class ConfigCommand extends Command<int> {
         [
           {
             'question': 'State management?',
-            'options': ['Riverpod', 'Bloc'],
+            'options': ['Riverpod', 'Bloc', 'Native (Flutter SDK)'],
           },
           'state_management',
         ],
@@ -74,6 +74,7 @@ class ConfigCommand extends Command<int> {
   String _normalizeStateManagement(String? value) {
     return switch (value) {
       'Bloc' => 'bloc',
+      'Native (Flutter SDK)' => 'native',
       _ => 'riverpod',
     };
   }

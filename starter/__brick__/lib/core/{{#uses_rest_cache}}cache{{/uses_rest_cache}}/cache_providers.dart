@@ -21,3 +21,5 @@ final secureCacheStoreProvider = Provider<CacheStore>((ref) {
 });
 {{/is_riverpod}}{{#is_bloc}}export 'cache_store.dart';
 {{/is_bloc}}
+{{#is_native}}export 'cache_store.dart';
+{{/is_native}}

@@ -33,7 +33,7 @@ Future<ProviderContainer> configureDependencies(
 
   {{/include_auth}}return container;
 }
-{{/is_riverpod}}{{#is_bloc}}{{#is_rest_backend}}import 'package:dio/dio.dart';
+{{/is_riverpod}}{{#uses_direct_di}}{{#is_rest_backend}}import 'package:dio/dio.dart';
 {{#uses_rest_cache}}import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 {{/uses_rest_cache}}import 'package:logger/logger.dart';
@@ -248,4 +248,4 @@ Future<AppDependencies> configureDependencies(
     {{/include_offline}}
   );
 }
-{{/is_firebase_backend}}{{/is_bloc}}
+{{/is_firebase_backend}}{{/uses_direct_di}}

@@ -1,0 +1,36 @@
+{{#is_native}}import 'package:flutter/foundation.dart';
+
+import '../../domain/entities/{{name.snakeCase()}}.dart';
+import '../../domain/usecases/get_{{name.snakeCase()}}.dart';
+
+final class {{name.pascalCase()}}ViewModel extends ChangeNotifier {
+  {{name.pascalCase()}}ViewModel({
+    required Get{{name.pascalCase()}}UseCase get{{name.pascalCase()}}UseCase,
+  }) : _get{{name.pascalCase()}}UseCase = get{{name.pascalCase()}}UseCase;
+
+  final Get{{name.pascalCase()}}UseCase _get{{name.pascalCase()}}UseCase;
+
+  {{name.pascalCase()}}Entity? _entity;
+  bool _isLoading = false;
+  String? _error;
+
+  {{name.pascalCase()}}Entity? get entity => _entity;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  Future<void> load() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _entity = await _get{{name.pascalCase()}}UseCase();
+    } on Exception catch (error) {
+      _error = error.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+}
+{{/is_native}}

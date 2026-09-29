@@ -7,5 +7,6 @@ export 'domain/usecases/get_{{name.snakeCase()}}.dart';
 {{#is_riverpod}}export 'providers.dart';
 export 'presentation/providers/{{name.snakeCase()}}_provider.dart';
 {{/is_riverpod}}{{#is_bloc}}export 'presentation/controllers/{{name.snakeCase()}}_bloc.dart';
-{{/is_bloc}}export 'presentation/views/{{name.snakeCase()}}_view.dart';
+{{/is_bloc}}{{#is_native}}export 'presentation/viewmodels/{{name.snakeCase()}}_view_model.dart';
+{{/is_native}}export 'presentation/views/{{name.snakeCase()}}_view.dart';
 export 'presentation/widgets/{{name.snakeCase()}}_empty_state.dart';

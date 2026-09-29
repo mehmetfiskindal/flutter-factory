@@ -5,15 +5,23 @@ void run(HookContext context) {
       ?.trim()
       .toLowerCase();
   final isBloc = stateManagement == 'bloc';
-  final normalizedStateManagement = isBloc ? 'bloc' : 'riverpod';
+  final isNative = stateManagement == 'native';
+  final normalizedStateManagement = isBloc
+      ? 'bloc'
+      : isNative
+          ? 'native'
+          : 'riverpod';
 
   context.vars = {
     ...context.vars,
     'state_management': normalizedStateManagement,
     'is_riverpod': normalizedStateManagement == 'riverpod',
     'is_bloc': normalizedStateManagement == 'bloc',
-    'state_folder': normalizedStateManagement == 'bloc'
-        ? 'controllers'
-        : 'providers',
+    'is_native': isNative,
+    'state_folder': isNative
+        ? 'viewmodels'
+        : isBloc
+            ? 'controllers'
+            : 'providers',
   };
 }

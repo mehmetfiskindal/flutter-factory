@@ -7,6 +7,8 @@ import '../../../../features/auth/presentation/providers/auth_controller.dart';
 
 import '../../../../features/auth/presentation/controllers/auth_bloc.dart';
 {{/include_auth}}{{/is_bloc}}
+{{#is_native}}{{#include_auth}}import '../../../../features/auth/presentation/viewmodels/auth_view_model.dart';
+{{/include_auth}}{{/is_native}}
 
 {{#is_riverpod}}{{#include_auth}}
 class HomeView extends ConsumerWidget {
@@ -80,7 +82,51 @@ class HomeView extends StatelessWidget {
   }
 }
 {{/include_auth}}
-{{/is_bloc}}{{^include_auth}}
+{{/is_bloc}}
+{{#is_native}}{{#include_auth}}
+class HomeView extends StatelessWidget {
+  const HomeView({
+    required this.viewModel,
+    super.key,
+  });
+
+  final AuthViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, child) {
+        final user = viewModel.user;
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('Home')),
+          body: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Text(
+                'Hello, ${user?.displayName ?? user?.email ?? 'there'}',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'This screen is inside a GoRouter ShellRoute and shares app shell navigation.',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+{{/include_auth}}{{^include_auth}}class HomeView extends StatelessWidget {
+  const HomeView({super.key});
+
+  @override
+  Widget build(BuildContext context) => const _HomeContent();
+}
+{{/include_auth}}{{/is_native}}
+{{^include_auth}}
 
 class _HomeContent extends StatelessWidget {
   const _HomeContent();

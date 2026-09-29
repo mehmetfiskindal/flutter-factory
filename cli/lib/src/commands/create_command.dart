@@ -24,7 +24,7 @@ class CreateCommand extends Command<int> {
     argParser
       ..addOption(
         'state',
-        allowed: const ['riverpod', 'bloc'],
+        allowed: const ['riverpod', 'bloc', 'native'],
         help: 'State management solution.',
       )
       ..addOption(
@@ -59,7 +59,7 @@ class CreateCommand extends Command<int> {
 
   @override
   String get invocation =>
-      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline]';
+      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc|native] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline]';
 
   @override
   String get name => 'create';
@@ -160,7 +160,7 @@ Future<void> createFlutterShell({
   if (result.exitCode != ExitCode.success.code) {
     throw UsageException(
       'flutter create failed:\n${result.stderr}',
-      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline] [--platforms android,ios]',
+      'flutter_factory create <app_name> [--org com.example] [--state riverpod|bloc|native] [--backend rest_firebase_hybrid|firebase] [--auth] [--offline] [--platforms android,ios]',
     );
   }
 }

@@ -91,6 +91,7 @@ void main() {
     expect(masonService.brickName, 'page');
     expect(masonService.vars['name'], 'dashboard');
     expect(masonService.vars['feature'], 'profile');
+    expect(masonService.vars['state_management'], 'riverpod');
 
     final routePaths = File(
       'lib/core/router/route_paths.dart',
@@ -205,6 +206,169 @@ void main() {
     expect(router, isNot(contains('DashboardRoute.route(),')));
   });
 
+  test('add page passes the selected state management solution', () async {
+    final masonService = _RecordingMasonService();
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddPageCommand(
+          logger: Logger(),
+          masonService: masonService,
+        ),
+      );
+
+    final exitCode = await runner.run([
+      'page',
+      'dashboard',
+      '--feature',
+      'profile',
+      '--state',
+      'bloc',
+      '--no-route',
+    ]);
+
+    expect(exitCode, 0);
+    expect(masonService.vars['state_management'], 'bloc');
+  });
+
+  test('add api passes the selected state management solution', () async {
+    final masonService = _RecordingMasonService();
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddApiCommand(
+          logger: Logger(),
+          masonService: masonService,
+        ),
+      );
+
+    final exitCode = await runner.run([
+      'api',
+      'billing',
+      '--state',
+      'bloc',
+      '--no-codegen',
+    ]);
+
+    expect(exitCode, 0);
+    expect(masonService.vars['state_management'], 'bloc');
+  });
+
+  test('add commands accept native Flutter SDK state management', () async {
+    final featureService = _RecordingMasonService();
+    final featureRunner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddFeatureCommand(
+          logger: Logger(),
+          masonService: featureService,
+        ),
+      );
+    expect(
+      await featureRunner.run(['feature', 'profile', '--state', 'native']),
+      0,
+    );
+    expect(featureService.vars['state_management'], 'native');
+
+    final pageService = _RecordingMasonService();
+    final pageRunner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddPageCommand(
+          logger: Logger(),
+          masonService: pageService,
+        ),
+      );
+    expect(
+      await pageRunner.run([
+        'page',
+        'dashboard',
+        '--feature',
+        'profile',
+        '--state',
+        'native',
+        '--no-route',
+      ]),
+      0,
+    );
+    expect(pageService.vars['state_management'], 'native');
+
+    final apiService = _RecordingMasonService();
+    final apiRunner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddApiCommand(
+          logger: Logger(),
+          masonService: apiService,
+        ),
+      );
+    expect(
+      await apiRunner.run([
+        'api',
+        'billing',
+        '--state',
+        'native',
+        '--no-codegen',
+      ]),
+      0,
+    );
+    expect(apiService.vars['state_management'], 'native');
+  });
+
+  test('add api rejects Firebase-only project defaults', () async {
+    const config = FlutterFactoryConfig(backend: 'firebase');
+    config.save();
+
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddApiCommand(
+          logger: Logger(),
+          masonService: _RecordingMasonService(),
+        ),
+      );
+
+    expect(
+      runner.run(['api', 'billing']),
+      throwsA(isA<UsageException>()),
+    );
+  });
+
+  test('add page and API default to the project state management setting',
+      () async {
+    const config = FlutterFactoryConfig(stateManagement: 'bloc');
+    config.save();
+
+    final pageService = _RecordingMasonService();
+    final pageRunner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddPageCommand(
+          logger: Logger(),
+          masonService: pageService,
+        ),
+      );
+    final pageExitCode = await pageRunner.run([
+      'page',
+      'dashboard',
+      '--feature',
+      'profile',
+      '--no-route',
+    ]);
+
+    final apiService = _RecordingMasonService();
+    final apiRunner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        AddApiCommand(
+          logger: Logger(),
+          masonService: apiService,
+        ),
+      );
+    final apiExitCode = await apiRunner.run([
+      'api',
+      'billing',
+      '--no-codegen',
+    ]);
+
+    expect(pageExitCode, 0);
+    expect(pageService.vars['state_management'], 'bloc');
+    expect(apiExitCode, 0);
+    expect(apiService.vars['state_management'], 'bloc');
+  });
+
   test('doctor command is available', () async {
     final exitCode = await runFlutterFactory(['doctor']);
 
@@ -255,6 +419,34 @@ void main() {
     expect(masonService.vars['org_name'], 'com.example');
     expect(masonService.vars['state_management'], 'bloc');
     expect(masonService.vars['backend'], 'firebase');
+  });
+
+  test('create passes native Flutter SDK state to the starter brick', () async {
+    final masonService = _RecordingMasonService();
+    final runner = CommandRunner<int>('test', 'test')
+      ..addCommand(
+        CreateCommand(
+          logger: Logger(),
+          masonService: masonService,
+          flutterShellCreator: ({
+            required appName,
+            required organization,
+            platforms,
+          }) async {},
+        ),
+      );
+
+    final exitCode = await runner.run([
+      'create',
+      'native_app',
+      '--org',
+      'com.example',
+      '--state',
+      'native',
+    ]);
+
+    expect(exitCode, 0);
+    expect(masonService.vars['state_management'], 'native');
   });
 
   test('create passes auth and offline flags to the starter brick', () async {
@@ -382,7 +574,7 @@ void main() {
       workingDirectory: Directory(repoRoot),
     );
 
-    for (final stateManagement in ['riverpod', 'bloc']) {
+    for (final stateManagement in ['riverpod', 'bloc', 'native']) {
       for (final backend in ['rest_firebase_hybrid', 'firebase']) {
         for (final includeAuth in [true, false]) {
           for (final includeOffline in [true, false]) {
@@ -418,6 +610,9 @@ void main() {
             final router =
                 File(p.join(outputDirectory.path, 'lib/app/router.dart'))
                     .readAsStringSync();
+            final projectConfig = File(
+              p.join(outputDirectory.path, '.flutter_factory.yaml'),
+            ).readAsStringSync();
 
             expect(
               files.any((file) => file.path.contains('{{')),
@@ -437,6 +632,33 @@ void main() {
             );
             expect(router.contains('RoutePaths.signIn'), includeAuth);
             expect(router.contains('SignInView'), includeAuth);
+            expect(
+              projectConfig,
+              contains('state_management: $stateManagement'),
+            );
+            expect(projectConfig, contains('backend: $backend'));
+
+            if (stateManagement == 'native') {
+              expect(pubspec, isNot(contains('flutter_riverpod:')));
+              expect(pubspec, isNot(contains('flutter_bloc:')));
+              expect(pubspec, isNot(contains('bloc:')));
+              final main = File(
+                p.join(outputDirectory.path, 'lib/main.dart'),
+              ).readAsStringSync();
+              expect(main, isNot(contains('flutter_riverpod')));
+              expect(main, isNot(contains('flutter_bloc')));
+              if (includeAuth) {
+                final authViewModel = File(
+                  p.join(
+                    outputDirectory.path,
+                    'lib/features/auth/presentation/viewmodels/auth_view_model.dart',
+                  ),
+                ).readAsStringSync();
+                expect(authViewModel, contains('extends ChangeNotifier'));
+                expect(authViewModel, isNot(contains('flutter_riverpod')));
+                expect(authViewModel, isNot(contains('package:bloc/')));
+              }
+            }
 
             if (backend == 'firebase') {
               expect(pubspec.contains('firebase_auth:'), includeAuth);
@@ -452,6 +674,163 @@ void main() {
             }
           }
         }
+      }
+    }
+  });
+
+  test('feature, page, and API bricks generate state-compatible files',
+      () async {
+    final repoRoot = previousDirectory.parent.path;
+    final masonService = MasonService(
+      logger: Logger(),
+      workingDirectory: Directory(repoRoot),
+    );
+
+    for (final stateManagement in ['riverpod', 'bloc', 'native']) {
+      final outputDirectory = Directory(
+        p.join(tempDirectory.path, 'additional_bricks_$stateManagement'),
+      );
+
+      await masonService.generate(
+        brickName: 'api_service',
+        targetDirectory: outputDirectory.path,
+        force: true,
+        vars: {
+          'name': 'billing',
+          'endpoint': '/v1/billing',
+          'state_management': stateManagement,
+          'run_codegen': false,
+        },
+      );
+      await masonService.generate(
+        brickName: 'feature',
+        targetDirectory: outputDirectory.path,
+        force: true,
+        vars: {
+          'name': 'profile',
+          'state_management': stateManagement,
+        },
+      );
+      await masonService.generate(
+        brickName: 'page',
+        targetDirectory: outputDirectory.path,
+        force: true,
+        vars: {
+          'name': 'dashboard',
+          'feature': 'profile',
+          'state_management': stateManagement,
+        },
+      );
+
+      final files = _generatedFiles(outputDirectory);
+      expect(
+        files.any((file) => file.path.contains('{{')),
+        isFalse,
+        reason: 'Raw mustache marker found in generated file path.',
+      );
+      expect(
+        files.any((file) => file.readAsStringSync().contains('{{')),
+        isFalse,
+        reason: 'Raw mustache marker found in generated file content.',
+      );
+
+      final apiDirectory =
+          Directory(p.join(outputDirectory.path, 'lib/features/billing'));
+      final pageView = File(
+        p.join(
+          outputDirectory.path,
+          'lib/features/profile/presentation/views/dashboard_view.dart',
+        ),
+      ).readAsStringSync();
+
+      if (stateManagement == 'bloc') {
+        expect(
+          File(p.join(apiDirectory.path, 'dependencies.dart')).existsSync(),
+          isTrue,
+        );
+        expect(
+          File(p.join(apiDirectory.path, 'providers.dart')).existsSync(),
+          isFalse,
+        );
+        expect(
+          pageView,
+          contains("import 'package:flutter_bloc/flutter_bloc.dart';"),
+        );
+        expect(pageView, isNot(contains('flutter_riverpod')));
+        expect(
+          File(
+            p.join(
+              outputDirectory.path,
+              'lib/features/profile/presentation/controllers/dashboard_cubit.dart',
+            ),
+          ).existsSync(),
+          isTrue,
+        );
+      } else if (stateManagement == 'native') {
+        final apiDependencies = File(
+          p.join(apiDirectory.path, 'dependencies.dart'),
+        ).readAsStringSync();
+        expect(
+          File(p.join(apiDirectory.path, 'dependencies.dart')).existsSync(),
+          isTrue,
+        );
+        expect(
+          File(p.join(apiDirectory.path, 'providers.dart')).existsSync(),
+          isFalse,
+        );
+        expect(pageView, contains('ListenableBuilder'));
+        expect(pageView, isNot(contains('flutter_riverpod')));
+        expect(pageView, isNot(contains('flutter_bloc')));
+        expect(apiDependencies, isNot(contains('flutter_riverpod')));
+        expect(apiDependencies, isNot(contains('flutter_bloc')));
+        expect(apiDependencies, isNot(contains('package:bloc/')));
+        expect(
+          File(
+            p.join(
+              outputDirectory.path,
+              'lib/features/profile/presentation/viewmodels/dashboard_view_model.dart',
+            ),
+          ).existsSync(),
+          isTrue,
+        );
+
+        final featureView = File(
+          p.join(
+            outputDirectory.path,
+            'lib/features/profile/presentation/views/profile_view.dart',
+          ),
+        ).readAsStringSync();
+        expect(featureView, contains('ListenableBuilder'));
+        final featureViewModel = File(
+          p.join(
+            outputDirectory.path,
+            'lib/features/profile/presentation/viewmodels/profile_view_model.dart',
+          ),
+        );
+        expect(featureViewModel.existsSync(), isTrue);
+        expect(
+          featureViewModel.readAsStringSync(),
+          isNot(contains('flutter_riverpod')),
+        );
+      } else {
+        expect(
+          File(p.join(apiDirectory.path, 'providers.dart')).existsSync(),
+          isTrue,
+        );
+        expect(
+          File(p.join(apiDirectory.path, 'dependencies.dart')).existsSync(),
+          isFalse,
+        );
+        expect(pageView, contains('flutter_riverpod'));
+        expect(
+          File(
+            p.join(
+              outputDirectory.path,
+              'lib/features/profile/presentation/providers/dashboard_controller.dart',
+            ),
+          ).existsSync(),
+          isTrue,
+        );
       }
     }
   });
@@ -588,6 +967,8 @@ void _createFlutterFactoryRoot() {
     'bricks/feature/brick.yaml',
     'bricks/api_service/brick.yaml',
     'bricks/page/brick.yaml',
+    'bricks/usecase/brick.yaml',
+    'bricks/widget/brick.yaml',
   ]) {
     File(path)
       ..createSync(recursive: true)

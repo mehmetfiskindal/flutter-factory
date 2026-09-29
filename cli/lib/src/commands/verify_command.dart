@@ -196,6 +196,12 @@ const _sampleCases = [
     offline: false,
   ),
   _StarterVerifyCase(
+    stateManagement: 'native',
+    backend: 'rest_firebase_hybrid',
+    auth: true,
+    offline: false,
+  ),
+  _StarterVerifyCase(
     stateManagement: 'riverpod',
     backend: 'firebase',
     auth: false,
@@ -210,7 +216,7 @@ const _sampleCases = [
 ];
 
 final _fullCases = <_StarterVerifyCase>[
-  for (final stateManagement in ['riverpod', 'bloc'])
+  for (final stateManagement in ['riverpod', 'bloc', 'native'])
     for (final backend in ['rest_firebase_hybrid', 'firebase'])
       for (final auth in [true, false])
         for (final offline in [true, false])

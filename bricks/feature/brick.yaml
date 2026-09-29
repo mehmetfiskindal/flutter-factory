@@ -14,4 +14,5 @@ vars:
     values:
       - riverpod
       - bloc
+      - native
     prompt: Which state management solution should this feature use?

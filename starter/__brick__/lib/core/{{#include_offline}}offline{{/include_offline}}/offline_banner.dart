@@ -7,6 +7,8 @@ import 'offline_service.dart';
 
 import 'offline_service.dart';
 {{/is_bloc}}
+{{#is_native}}import 'offline_service.dart';
+{{/is_native}}
 
 {{#is_riverpod}}class OfflineBanner extends ConsumerWidget {
   const OfflineBanner({super.key});
@@ -33,6 +35,25 @@ import 'offline_service.dart';
   }
 }
 {{/is_bloc}}
+{{#is_native}}class OfflineBanner extends StatelessWidget {
+  const OfflineBanner({
+    required this.connectivityService,
+    super.key,
+  });
+
+  final ConnectivityService connectivityService;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<OfflineStatus>(
+      stream: connectivityService.watchStatus(),
+      builder: (context, snapshot) {
+        return _OfflineBannerContent(status: snapshot.data);
+      },
+    );
+  }
+}
+{{/is_native}}
 
 class _OfflineBannerContent extends StatelessWidget {
   const _OfflineBannerContent({

@@ -19,6 +19,7 @@ vars:
     values:
       - riverpod
       - bloc
+      - native
     prompt: Which state management solution should be used?
   backend:
     type: enum
